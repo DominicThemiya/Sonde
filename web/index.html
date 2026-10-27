@@ -385,6 +385,159 @@
     box-shadow: 0 0 8px var(--led);
   }
 
+  /* ---------- dials ---------- */
+
+  /* knurled knob shared by the deck dial and the library wheel. --angle is
+     set from script, .settling adds a springy ease for snaps and bounces */
+  .knob {
+    --angle: 0deg;
+    position: absolute;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, #1a2036 0 56%, #0c0f1c 56.5% 58%, transparent 58.5%),
+      repeating-conic-gradient(#3a4672 0deg 2.2deg, #151a2c 2.2deg 5deg);
+    box-shadow:
+      0 0 0 1px var(--key-edge),
+      inset 0 0 0 1px rgb(255 255 255 / 0.06),
+      inset 0 0 24px rgb(0 0 0 / 0.55);
+    transform: rotate(var(--angle));
+    will-change: transform;
+  }
+
+  .knob.settling { transition: transform 0.32s cubic-bezier(0.3, 1.5, 0.5, 1); }
+
+  /* glowing pointer line from the rim towards the centre */
+  .knob::before {
+    content: "";
+    position: absolute;
+    left: calc(50% - 1.5px);
+    top: 3%;
+    width: 3px;
+    height: 26%;
+    background: var(--vfd);
+    box-shadow: 0 0 8px var(--vfd);
+  }
+
+  /* finger dimple, so it reads as something to grab */
+  .knob-dimple {
+    position: absolute;
+    left: 50%;
+    top: 33%;
+    width: 13%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle at 50% 35%, #0b0e19, #222a45);
+    box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.7), 0 1px 0 rgb(255 255 255 / 0.06);
+  }
+
+  .tick { stroke: #333; stroke-width: 1.2; transition: stroke 0.12s; }
+  .tick.major { stroke: #5a5a5a; stroke-width: 1.6; }
+  .tick.near { stroke: var(--vfd-dim); }
+  .tick.lit { stroke: var(--vfd); filter: drop-shadow(0 0 2px var(--vfd)); }
+
+  .dial-unit {
+    max-width: 260px;
+    margin: 18px auto 0;
+  }
+
+  /* a full knob, cut in half by the container: only the top half shows */
+  .dial {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+  }
+
+  .dial.grabbing { cursor: grabbing; }
+  .dial:focus-visible { outline-offset: 4px; }
+
+  .dial-scale {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .dial .knob {
+    left: 8%;
+    top: 16%;
+    width: 84%;
+  }
+
+  .dial.grabbing .knob, .wheel.grabbing .knob { filter: brightness(1.18); }
+
+  /* glass readout sitting on the flat edge, over the centre of the knob */
+  .dial-hub {
+    position: absolute;
+    left: 30%;
+    bottom: 0;
+    width: 40%;
+    aspect-ratio: 2 / 1;
+    display: grid;
+    place-items: end center;
+    padding-bottom: 8%;
+    border-radius: 999px 999px 0 0;
+    background: var(--glass);
+    box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--key-edge), inset 0 6px 14px rgb(0 0 0 / 0.7);
+    color: var(--vfd);
+    text-shadow: 0 0 6px rgb(125 249 228 / 0.55);
+    font-size: 15px;
+    font-weight: 600;
+    pointer-events: none;
+  }
+
+  .dial-hub span.warn { color: var(--led); text-shadow: 0 0 6px rgb(255 138 61 / 0.5); font-size: 11px; font-weight: 500; text-align: center; line-height: 1.15; }
+
+  .pop { animation: pop 0.14s ease-out; }
+
+  @keyframes pop {
+    from { transform: scale(1.18); }
+    to { transform: scale(1); }
+  }
+
+  .dial-legend {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+
+  .dial-modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .key-small {
+    height: 34px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .key-small[aria-pressed="true"] { color: var(--text); }
+
+  /* library wheel: phones only, see the media query below */
+  .wheel, .wheel-readout { display: none; }
+
+  /* hidden switch Safari 18+ gives a haptic tap for when it toggles */
+  .haptic-switch {
+    position: fixed;
+    left: -100px;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
   /* status strip under the keys: how the queue will behave */
   .status {
     display: grid;
@@ -697,11 +850,92 @@
       background: var(--vfd);
       box-shadow: 0 0 6px var(--vfd);
     }
+
+    /* keep rows clear of the wheel on the right edge */
+    .table-head, .songs, .message { margin-right: 72px; }
+
+    .song.cursor {
+      outline: 1px solid var(--vfd);
+      outline-offset: -1px;
+      background: rgb(125 249 228 / 0.06);
+    }
+
+    /* half a wheel sticking out of the right edge, above the deck bar */
+    .wheel {
+      display: block;
+      position: fixed;
+      right: 0;
+      bottom: calc(84px + env(safe-area-inset-bottom));
+      z-index: 3;
+      width: 84px;
+      height: 168px;
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body.deck-open .wheel, body.deck-open .wheel-readout { display: none; }
+
+    .wheel-scale {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .wheel .knob {
+      left: 7px;
+      top: 7px;
+      width: 154px;
+    }
+
+    .wheel-hub {
+      position: absolute;
+      right: 0;
+      top: 54px;
+      width: 30px;
+      height: 60px;
+      display: grid;
+      place-items: center;
+      padding-left: 6px;
+      border-radius: 999px 0 0 999px;
+      background: var(--glass);
+      box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--key-edge), inset 6px 0 14px rgb(0 0 0 / 0.7);
+      color: var(--vfd);
+      filter: drop-shadow(0 0 4px rgb(125 249 228 / 0.5));
+    }
+
+    .wheel-hub:active { color: #e9fffb; }
+
+    /* glass label to the left of the wheel showing the highlighted song */
+    .wheel-readout {
+      display: block;
+      position: fixed;
+      right: 92px;
+      bottom: calc(84px + 60px + env(safe-area-inset-bottom));
+      z-index: 3;
+      max-width: calc(100vw - 112px);
+      margin: 0;
+      padding: 8px 12px;
+      opacity: 0;
+      transform: translateX(8px);
+      transition: opacity 0.18s, transform 0.18s;
+      pointer-events: none;
+    }
+
+    .wheel-readout.show { opacity: 1; transform: none; }
+
+    .wheel-readout .micro { color: var(--vfd); opacity: 0.6; margin-bottom: 2px; }
+    .wheel-readout .vfd-title { font-size: 16px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .deck, .deck.open { transition: none; }
     .key { transition: none; }
+    .knob.settling { transition: none; }
+    .pop { animation: none; }
+    .wheel-readout { transition: none; }
   }
 </style>
 </head>
@@ -773,6 +1007,29 @@
         </button>
       </div>
 
+      <div class="dial-unit">
+        <div class="dial" id="dial" tabindex="0" role="slider" aria-label="Seek dial" aria-valuetext="Turn to seek">
+          <svg class="dial-scale" id="dial-scale" viewBox="0 0 200 100" aria-hidden="true"></svg>
+          <div class="knob" id="dial-knob"><span class="knob-dimple"></span></div>
+          <div class="dial-hub"><span id="dial-readout">Seek</span></div>
+        </div>
+        <div class="dial-legend micro" aria-hidden="true">
+          <span id="legend-left">Back</span>
+          <span id="legend-right">Forward</span>
+        </div>
+        <div class="dial-modes">
+          <button class="key key-small" id="mode-seek" type="button" aria-pressed="true" title="Dial seeks through the song">
+            <span class="lamp"></span>Seek
+          </button>
+          <button class="key key-small" id="mode-volume" type="button" aria-pressed="false" title="Dial sets the volume">
+            <span class="lamp"></span>Volume
+          </button>
+          <button class="key key-small" id="clicks" type="button" aria-pressed="true" title="Sounds and haptics when turning dials">
+            <span class="lamp"></span>Clicks
+          </button>
+        </div>
+      </div>
+
       <dl class="status">
         <div><dt class="micro">Order</dt><dd id="status-order">In order</dd></div>
         <div><dt class="micro">Repeat</dt><dd id="status-repeat">Off</dd></div>
@@ -819,6 +1076,21 @@
     <svg class="icon-pause" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" hidden><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
   </button>
 </div>
+
+<div class="wheel-readout vfd" id="wheel-readout" aria-hidden="true">
+  <div class="micro" id="wheel-count"></div>
+  <div class="vfd-title" id="wheel-title"></div>
+</div>
+
+<div class="wheel" id="wheel" tabindex="0" role="slider" aria-label="Library dial, Enter plays the highlighted song">
+  <svg class="wheel-scale" id="wheel-scale" viewBox="0 0 84 168" aria-hidden="true"></svg>
+  <div class="knob" id="wheel-knob"><span class="knob-dimple"></span></div>
+  <button class="wheel-hub" id="wheel-hub" type="button" data-no-drag aria-label="Play highlighted song">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>
+  </button>
+</div>
+
+<label class="haptic-switch" id="haptic-switch" aria-hidden="true"><input type="checkbox" switch tabindex="-1"></label>
 
 <script>
 const $ = (id) => document.getElementById(id);
@@ -997,6 +1269,8 @@ function applySearch() {
   } else if (songs.length) {
     $("message").hidden = true;
   }
+
+  refreshVisible();
 }
 
 function buildOrder() {
@@ -1079,6 +1353,17 @@ function playSong(i) {
   showNowPlaying(song);
   updateStatus();
 
+  // the library wheel follows whatever starts playing, unless it's in your hand
+  const position = visible.indexOf(i);
+  if (position >= 0 && !wheel.busy) {
+    setCursor(position, { scroll: false });
+    wheel.setValue(-position * WHEEL_DETENT, true);
+  }
+
+  if (dialMode === "seek" && !deckDial.busy) {
+    dialReadout("Seek");
+  }
+
   for (const id of ["play", "mini-play", "prev", "next", "seek"]) {
     $(id).disabled = false;
   }
@@ -1144,6 +1429,7 @@ function updateProgress() {
 
 function setDeckOpen(open) {
   $("deck").classList.toggle("open", open);
+  document.body.classList.toggle("deck-open", open);
   if (open) {
     $("deck-close").focus();
   }
@@ -1218,7 +1504,7 @@ document.addEventListener("keydown", (event) => {
     $("search").value = "";
     applySearch();
     $("search").blur();
-  } else if (typing || event.target.matches("button, input")) {
+  } else if (typing || event.target.matches("button, input, [role=slider]")) {
     return;
   } else if (event.key === " ") {
     event.preventDefault();
@@ -1248,6 +1534,628 @@ if ("mediaSession" in navigator) {
   }
 }
 
+// ---------- clicks: little synthesised sounds and haptic taps ----------
+
+function loadSetting(key, fallback) {
+  try {
+    return localStorage.getItem(key) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveSetting(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // private browsing can refuse storage, the setting just won't stick
+  }
+}
+
+const clicks = {
+  on: loadSetting("sonde-clicks", "on") === "on",
+  ctx: null,
+  out: null,
+  lastTick: 0,
+  lastTap: 0,
+
+  // made on first use, browsers only allow audio after a touch or click
+  context() {
+    if (!this.on) {
+      return null;
+    }
+    if (!this.ctx) {
+      try {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.out = this.ctx.createGain();
+        this.out.gain.value = 0.6;
+        this.out.connect(this.ctx.destination);
+      } catch {
+        return null;
+      }
+    }
+    if (this.ctx.state === "suspended") {
+      this.ctx.resume();
+    }
+    return this.ctx;
+  },
+
+  // one short tone sliding from one pitch to another with a fast fade
+  blip(from, to, seconds, type, gain, delay = 0) {
+    const ctx = this.context();
+    if (!ctx) {
+      return;
+    }
+    const start = ctx.currentTime + delay;
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(from, start);
+    osc.frequency.exponentialRampToValueAtTime(to, start + seconds);
+    env.gain.setValueAtTime(0.0001, start);
+    env.gain.exponentialRampToValueAtTime(gain, start + 0.003);
+    env.gain.exponentialRampToValueAtTime(0.0001, start + seconds);
+
+    osc.connect(env).connect(this.out);
+    osc.start(start);
+    osc.stop(start + seconds + 0.02);
+  },
+
+  // detent click, pitch 0.7 to 1.5. fast spins skip some so it stays a purr, not a buzz
+  tick(pitch = 1) {
+    const now = performance.now();
+    if (now - this.lastTick < 28) {
+      return;
+    }
+    this.lastTick = now;
+    this.blip(2300 * pitch, 1400 * pitch, 0.03, "triangle", 0.05);
+    this.tap(6);
+  },
+
+  grab() {
+    this.blip(210, 110, 0.07, "sine", 0.1);
+    this.tap(10);
+  },
+
+  settle() {
+    this.blip(150, 90, 0.06, "sine", 0.05);
+  },
+
+  // hit an end stop
+  bump() {
+    this.blip(95, 50, 0.12, "sine", 0.16);
+    this.blip(900, 600, 0.03, "triangle", 0.03);
+    this.tap(22);
+  },
+
+  confirm() {
+    this.blip(660, 990, 0.09, "sine", 0.06);
+    this.blip(990, 1320, 0.08, "sine", 0.04, 0.06);
+    this.tap(14);
+  },
+
+  tap(ms) {
+    const now = performance.now();
+    if (!this.on || now - this.lastTap < 35) {
+      return;
+    }
+    this.lastTap = now;
+
+    if (navigator.vibrate) {
+      navigator.vibrate(ms);
+    } else {
+      // iPhone Safari has no vibrate, but taps when a switch toggles
+      $("haptic-switch").click();
+    }
+  },
+};
+
+// ---------- dials ----------
+
+const RAD = Math.PI / 180;
+
+// lines around an arc, angles in screen degrees (0 = right, 90 = down)
+function drawScale(svg, { cx, cy, inner, outer, from, to, step, major }) {
+  const ticks = [];
+
+  for (let angle = from; angle <= to + 0.001; angle += step) {
+    const isMajor = Math.round(angle - from) % major === 0;
+    const start = isMajor ? inner - 3 : inner;
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+
+    line.setAttribute("x1", cx + start * Math.cos(angle * RAD));
+    line.setAttribute("y1", cy + start * Math.sin(angle * RAD));
+    line.setAttribute("x2", cx + outer * Math.cos(angle * RAD));
+    line.setAttribute("y2", cy + outer * Math.sin(angle * RAD));
+    line.setAttribute("class", isMajor ? "tick major" : "tick");
+    svg.append(line);
+    ticks.push({ angle, line, major: isMajor });
+  }
+  return ticks;
+}
+
+// light the tick under the knob's pointer, and dimly its neighbours
+function lightPointer(ticks, pointer, step) {
+  for (const tick of ticks) {
+    const off = Math.abs(((tick.angle - pointer + 540) % 360) - 180);
+    tick.line.setAttribute("class", `tick${tick.major ? " major" : ""}${off < step / 2 ? " lit" : off < step * 1.5 ? " near" : ""}`);
+  }
+}
+
+// a knob you drag round in a circle. it reports every detent it clicks
+// past, coasts after a flick, and stretches then springs back past its ends
+class Dial {
+  constructor(el, knob, options) {
+    this.el = el;
+    this.knob = knob;
+    this.o = options;
+    this.value = 0;      // degrees, kept inside the limits
+    this.raw = 0;        // where the finger pushed it, can go past the limits
+    this.velocity = 0;   // degrees per millisecond
+    this.detentIndex = 0;
+    this.pointer = null;
+    this.frame = 0;
+    this.coasting = false;
+    this.overLimit = false;
+
+    el.addEventListener("pointerdown", (e) => this.grab(e));
+    el.addEventListener("pointermove", (e) => this.drag(e));
+    el.addEventListener("pointerup", (e) => this.release(e));
+    el.addEventListener("pointercancel", (e) => this.release(e));
+  }
+
+  // being held or still coasting from a flick
+  get busy() { return this.pointer !== null || this.coasting; }
+
+  get detent() { return this.o.detent(); }
+  get min() { return this.o.min ? this.o.min() : -Infinity; }
+  get max() { return this.o.max ? this.o.max() : Infinity; }
+
+  fingerAngle(e) {
+    const centre = this.o.centre(this.el.getBoundingClientRect());
+    const dx = e.clientX - centre.x;
+    const dy = e.clientY - centre.y;
+    return { angle: Math.atan2(dy, dx) / RAD, distance: Math.hypot(dx, dy) };
+  }
+
+  grab(e) {
+    if (e.button !== 0 || e.target.closest("[data-no-drag]")) {
+      return;
+    }
+    if (this.o.enabled && !this.o.enabled()) {
+      this.o.onRefuse?.();
+      return;
+    }
+
+    cancelAnimationFrame(this.frame);
+    try {
+      // keep getting moves even when the finger slides off the dial
+      this.el.setPointerCapture(e.pointerId);
+    } catch {
+      // the pointer is already gone, the drag just ends early
+    }
+    this.pointer = { id: e.pointerId, angle: this.fingerAngle(e).angle, time: e.timeStamp };
+    this.velocity = 0;
+    this.raw = this.value;
+    this.knob.classList.remove("settling");
+    this.el.classList.add("grabbing");
+    this.o.onGrab?.();
+  }
+
+  drag(e) {
+    if (!this.pointer || e.pointerId !== this.pointer.id) {
+      return;
+    }
+
+    const finger = this.fingerAngle(e);
+
+    // too close to the centre to tell which way it's turning
+    if (finger.distance < 12) {
+      return;
+    }
+
+    const delta = ((finger.angle - this.pointer.angle + 540) % 360) - 180;
+    const dt = Math.max(1, e.timeStamp - this.pointer.time);
+
+    this.velocity = this.velocity * 0.6 + (delta / dt) * 0.4;
+    this.pointer.angle = finger.angle;
+    this.pointer.time = e.timeStamp;
+    this.turn(delta);
+  }
+
+  release(e) {
+    if (!this.pointer || e.pointerId !== this.pointer.id) {
+      return;
+    }
+    this.pointer = null;
+    this.el.classList.remove("grabbing");
+
+    // a flick keeps spinning, a slow let go settles where it is
+    if (Math.abs(this.velocity) > 0.06 && !this.overLimit) {
+      this.coast();
+    } else {
+      this.settle();
+    }
+  }
+
+  turn(delta) {
+    const min = this.min;
+    const max = this.max;
+
+    // limit how far past an end it can be dragged, so coming back is quick
+    this.raw = Math.min(max + 60, Math.max(min - 60, this.raw + delta));
+    this.value = Math.min(max, Math.max(min, this.raw));
+
+    const over = this.raw - this.value;
+
+    if (over !== 0 && !this.overLimit) {
+      this.overLimit = true;
+      this.o.onLimit?.(Math.sign(over));
+    } else if (over === 0) {
+      this.overLimit = false;
+    }
+
+    const index = Math.round(this.value / this.detent);
+
+    if (index !== this.detentIndex) {
+      const steps = index - this.detentIndex;
+      this.detentIndex = index;
+      this.o.onDetent?.(steps, index);
+    }
+
+    // past an end it stretches like a rubber band
+    this.render(this.value + Math.sign(over) * Math.min(16, Math.abs(over) * 0.3));
+  }
+
+  coast() {
+    let last = performance.now();
+    this.coasting = true;
+
+    const step = (now) => {
+      const dt = Math.min(32, now - last);
+      last = now;
+      this.velocity *= Math.pow(this.o.friction, dt);
+      this.turn(this.velocity * dt);
+
+      if (this.overLimit || Math.abs(this.velocity) < 0.01) {
+        this.settle();
+        return;
+      }
+      this.frame = requestAnimationFrame(step);
+    };
+    this.frame = requestAnimationFrame(step);
+  }
+
+  // spring back from past an end and click into the nearest detent
+  settle() {
+    cancelAnimationFrame(this.frame);
+    this.coasting = false;
+    this.value = this.detentIndex * this.detent;
+    this.raw = this.value;
+    this.velocity = 0;
+    this.overLimit = false;
+    this.knob.classList.add("settling");
+    this.render(this.value);
+    this.o.onSettle?.();
+  }
+
+  setValue(value, animate) {
+    cancelAnimationFrame(this.frame);
+    this.value = this.raw = value;
+    this.detentIndex = Math.round(value / this.detent);
+    this.knob.classList.toggle("settling", animate);
+    this.render(value);
+  }
+
+  render(visual) {
+    this.knob.style.setProperty("--angle", `${visual + (this.o.offset || 0)}deg`);
+    this.o.onRender?.(visual);
+  }
+}
+
+// ---------- deck dial: seek or volume ----------
+
+const volumeWorks = (() => {
+  // iPhone Safari ignores volume changes from web pages
+  const probe = new Audio();
+  probe.volume = 0.5;
+  return probe.volume === 0.5;
+})();
+
+let dialMode = "seek";
+let seekAngle = 0;        // where the knob was left in seek mode
+let seekFrom = 0;         // song position when the dial was grabbed
+let seekTo = 0;           // where letting go will jump to
+let seekAtEnd = false;
+
+const VOLUME_DETENT = 9;  // 20 steps of 5% across the half circle
+const SEEK_DETENT = 5;
+
+const dialTicks = drawScale($("dial-scale"), {
+  cx: 100, cy: 100, inner: 88, outer: 96, from: -180, to: 0, step: 5, major: 45,
+});
+
+function signedTime(seconds) {
+  return `${seconds < 0 ? "-" : "+"}${formatTime(Math.abs(seconds))}`;
+}
+
+function dialReadout(text, warn = false) {
+  const el = $("dial-readout");
+  el.textContent = text;
+  el.classList.toggle("warn", warn);
+  el.classList.remove("pop");
+  void el.offsetWidth; // restart the pop animation
+  el.classList.add("pop");
+}
+
+function setVolume(level) {
+  audio.volume = level;
+  saveSetting("sonde-volume", String(level));
+  $("dial").setAttribute("aria-valuetext", `Volume ${Math.round(level * 100)}%`);
+}
+
+const deckDial = new Dial($("dial"), $("dial-knob"), {
+  centre: (r) => ({ x: r.left + r.width / 2, y: r.bottom }),
+  detent: () => (dialMode === "volume" ? VOLUME_DETENT : SEEK_DETENT),
+  min: () => (dialMode === "volume" ? -90 : -Infinity),
+  max: () => (dialMode === "volume" ? 90 : Infinity),
+  friction: 0.994,
+
+  enabled: () => (dialMode === "volume" ? volumeWorks : current >= 0 && isFinite(audio.duration)),
+
+  onRefuse() {
+    clicks.bump();
+    dialReadout(dialMode === "volume" ? "Use side buttons" : "Pick a song", true);
+  },
+
+  onGrab() {
+    clicks.grab();
+    if (dialMode === "seek") {
+      seeking = true;
+      seekFrom = seekTo = audio.currentTime;
+      seekAtEnd = false;
+      dialReadout(signedTime(0));
+    }
+  },
+
+  onDetent(steps, index) {
+    if (dialMode === "volume") {
+      const level = (index * VOLUME_DETENT + 90) / 180;
+      setVolume(level);
+      dialReadout(`${Math.round(level * 100)}%`);
+      clicks.tick(0.7 + level * 0.8);
+      return;
+    }
+
+    // jog wheel: the faster it spins, the further each click jumps
+    const perClick = Math.min(10, Math.max(1, Math.round(Math.abs(deckDial.velocity) * 12)));
+    const duration = audio.duration;
+    const target = Math.min(duration - 0.5, Math.max(0, seekTo + steps * perClick));
+    const atEnd = target === 0 || target === duration - 0.5;
+
+    if (atEnd && !seekAtEnd) {
+      clicks.bump();
+    } else if (!atEnd) {
+      clicks.tick(0.75 + (target / duration) * 0.7);
+    }
+    seekAtEnd = atEnd;
+    seekTo = target;
+
+    // preview the jump on the timeline, the real seek happens on let go
+    const fraction = target / duration;
+    $("seek").value = Math.round(fraction * 1000);
+    $("seek").style.setProperty("--fill", `${fraction * 100}%`);
+    $("time-current").textContent = formatTime(target);
+    dialReadout(signedTime(target - seekFrom));
+  },
+
+  onLimit() {
+    clicks.bump();
+  },
+
+  onSettle() {
+    clicks.settle();
+    if (dialMode === "seek" && seeking) {
+      if (seekTo !== seekFrom) {
+        audio.currentTime = seekTo;
+      }
+      seeking = false;
+      $("dial").setAttribute("aria-valuetext", `At ${formatTime(seekTo)}`);
+    }
+  },
+
+  onRender(visual) {
+    if (dialMode === "volume") {
+      // level meter: everything up to the pointer is lit
+      for (const tick of dialTicks) {
+        const lit = tick.angle <= visual - 90 + 0.001;
+        tick.line.setAttribute("class", `tick${tick.major ? " major" : ""}${lit ? " lit" : ""}`);
+      }
+    } else {
+      lightPointer(dialTicks, visual - 90, 5);
+    }
+  },
+});
+
+function setDialMode(mode) {
+  if (mode === dialMode) {
+    return;
+  }
+  if (dialMode === "seek") {
+    seekAngle = deckDial.value;
+  }
+  dialMode = mode;
+
+  $("mode-seek").setAttribute("aria-pressed", mode === "seek");
+  $("mode-volume").setAttribute("aria-pressed", mode === "volume");
+  $("legend-left").textContent = mode === "volume" ? "Quiet" : "Back";
+  $("legend-right").textContent = mode === "volume" ? "Loud" : "Forward";
+  $("dial").setAttribute("aria-label", mode === "volume" ? "Volume dial" : "Seek dial");
+
+  clicks.tick(1.2);
+
+  if (mode === "volume") {
+    if (volumeWorks) {
+      deckDial.setValue(audio.volume * 180 - 90, true);
+      dialReadout(`${Math.round(audio.volume * 100)}%`);
+    } else {
+      deckDial.setValue(90, true);
+      dialReadout("Use side buttons", true);
+    }
+  } else {
+    deckDial.setValue(seekAngle, true);
+    dialReadout("Seek");
+  }
+}
+
+$("mode-seek").addEventListener("click", () => setDialMode("seek"));
+$("mode-volume").addEventListener("click", () => setDialMode("volume"));
+
+$("clicks").addEventListener("click", () => {
+  clicks.on = !clicks.on;
+  $("clicks").setAttribute("aria-pressed", clicks.on);
+  saveSetting("sonde-clicks", clicks.on ? "on" : "off");
+  clicks.confirm();
+});
+
+// arrow keys turn the dial one step for keyboard users
+$("dial").addEventListener("keydown", (event) => {
+  const direction = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[event.key];
+  if (!direction) {
+    return;
+  }
+  event.preventDefault();
+
+  if (dialMode === "volume" && volumeWorks) {
+    const level = Math.min(1, Math.max(0, Math.round(audio.volume * 20 + direction) / 20));
+    setVolume(level);
+    deckDial.setValue(level * 180 - 90, true);
+    dialReadout(`${Math.round(level * 100)}%`);
+    clicks.tick(0.7 + level * 0.8);
+  } else if (dialMode === "seek" && current >= 0 && audio.duration) {
+    audio.currentTime = Math.min(audio.duration, Math.max(0, audio.currentTime + direction * 5));
+    deckDial.setValue(deckDial.value + direction * SEEK_DETENT, true);
+    dialReadout(signedTime(direction * 5));
+    clicks.tick(1);
+  }
+});
+
+// ---------- library wheel (phones) ----------
+
+const WHEEL_DETENT = 15;
+let visible = [];         // indices of the songs the search lets through
+let cursor = 0;           // position in visible of the highlighted song
+let wheelHideTimer = 0;
+
+const wheelTicks = drawScale($("wheel-scale"), {
+  cx: 84, cy: 84, inner: 79, outer: 83, from: 95, to: 265, step: 10, major: 30,
+});
+
+function setCursor(position, { feedback = false, scroll = true } = {}) {
+  if (!visible.length) {
+    return;
+  }
+  songs[visible[cursor]]?.row.classList.remove("cursor");
+  cursor = Math.min(visible.length - 1, Math.max(0, position));
+
+  const song = songs[visible[cursor]];
+  song.row.classList.add("cursor");
+  if (scroll) {
+    song.row.scrollIntoView({ block: "center", behavior: "instant" });
+  }
+
+  $("wheel-count").textContent = `${String(cursor + 1).padStart(3, "0")} of ${String(visible.length).padStart(3, "0")}`;
+  $("wheel-title").textContent = song.title;
+  $("wheel").setAttribute("aria-valuetext", `${song.title}, ${cursor + 1} of ${visible.length}`);
+
+  if (feedback) {
+    // pitch climbs as you go down the list
+    clicks.tick(0.75 + (cursor / Math.max(1, visible.length - 1)) * 0.6);
+  }
+}
+
+function showWheelReadout() {
+  clearTimeout(wheelHideTimer);
+  $("wheel-readout").classList.add("show");
+}
+
+function hideWheelReadoutSoon() {
+  clearTimeout(wheelHideTimer);
+  wheelHideTimer = setTimeout(() => $("wheel-readout").classList.remove("show"), 1100);
+}
+
+// keep the wheel's list in step with the search box
+function refreshVisible() {
+  for (const song of songs) {
+    song.row.classList.remove("cursor");
+  }
+  visible = songs.map((_, i) => i).filter((i) => !songs[i].row.parentElement.hidden);
+  cursor = 0;
+  wheel.setValue(0, false);
+  if (visible.length) {
+    setCursor(0, { scroll: false });
+  }
+}
+
+const wheel = new Dial($("wheel"), $("wheel-knob"), {
+  centre: (r) => ({ x: r.right, y: r.top + r.height / 2 }),
+  detent: () => WHEEL_DETENT,
+  // dragging down along the wheel turns it anticlockwise, which moves down the list
+  min: () => -(Math.max(1, visible.length) - 1) * WHEEL_DETENT,
+  max: () => 0,
+  offset: -90,
+  friction: 0.996,
+  enabled: () => visible.length > 0,
+
+  onRefuse() {
+    clicks.bump();
+  },
+
+  onGrab() {
+    clicks.grab();
+    showWheelReadout();
+  },
+
+  onDetent(steps, index) {
+    setCursor(-index, { feedback: true });
+  },
+
+  onLimit() {
+    clicks.bump();
+  },
+
+  onSettle() {
+    clicks.settle();
+    hideWheelReadoutSoon();
+  },
+
+  onRender(visual) {
+    lightPointer(wheelTicks, visual + 180, 10);
+  },
+});
+
+$("wheel-hub").addEventListener("click", () => {
+  if (visible.length) {
+    clicks.confirm();
+    playSong(visible[cursor]);
+  }
+});
+
+$("wheel").addEventListener("keydown", (event) => {
+  const direction = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];
+
+  if (direction) {
+    event.preventDefault();
+    setCursor(cursor + direction, { feedback: true });
+    wheel.setValue(-cursor * WHEEL_DETENT, true);
+  } else if (event.key === "Enter" && visible.length) {
+    event.preventDefault();
+    clicks.confirm();
+    playSong(visible[cursor]);
+  }
+});
+
 async function loadSongs() {
   try {
     const response = await fetch("/api/songs");
@@ -1260,6 +2168,7 @@ async function loadSongs() {
     renderReadout();
     buildOrder();
     updateStatus();
+    refreshVisible();
 
     // play works before anything is picked, it starts the first song
     $("play").disabled = $("mini-play").disabled = !songs.length;
@@ -1271,6 +2180,13 @@ async function loadSongs() {
     showMessage("Can't reach the Sonde server", "Check that sonded is still running, then reload this page.");
   }
 }
+
+if (volumeWorks) {
+  audio.volume = Number(loadSetting("sonde-volume", "1")) || 0;
+}
+$("clicks").setAttribute("aria-pressed", clicks.on);
+deckDial.setValue(0, false);
+wheel.setValue(0, false);
 
 $("stat-address").textContent = location.host;
 $("cover").append(coverElement(null));
