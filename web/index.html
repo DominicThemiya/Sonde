@@ -1,0 +1,1281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Sonde</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M0 0h26l6 6v26H6l-6-6z' fill='%23000'/%3E%3Cpath d='M8 21v-8M13 24V8M18 21v-8M23 18v-2' stroke='%237df9e4' stroke-width='2.5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&family=Michroma&display=swap">
+<style>
+  :root {
+    /* the room: plain black with neutral grey hairlines */
+    --black: #000;
+    --surface: #0c0c0c;
+    --line: #262626;
+    --line-strong: #444;
+    --text: #e8e8e8;
+    --muted: #8f8f8f;
+    --faint: #7a7a7a;
+
+    /* the deck hardware */
+    --key-edge: #33406a;
+    --vfd: #7df9e4;
+    --vfd-dim: #1d4a44;
+    --glass: #04110f;
+    --led: #ff8a3d;
+    --led-off: #4a3326;
+
+    --deck-width: 360px;
+    --chamfer: 18px;
+    --mark: 10px;
+    --body-font: "Chakra Petch", "Bahnschrift", "DIN Alternate", "Segoe UI", system-ui, sans-serif;
+    --mark-font: "Michroma", "Eurostile", "Bank Gothic", var(--body-font);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; }
+
+  [hidden] { display: none !important; }
+
+  body {
+    min-height: 100dvh;
+    background: var(--black);
+    color: var(--text);
+    font: 400 15px/1.45 var(--body-font);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--led);
+    outline-offset: 2px;
+  }
+
+  svg, img { display: block; }
+
+  /* small technical print used all over: field names, units, references */
+  .micro {
+    font-size: 10.5px;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    color: var(--faint);
+  }
+
+  /* registration marks in the four corners of a framed area */
+  .marked {
+    position: relative;
+    background:
+      linear-gradient(var(--line-strong), var(--line-strong)) top left / var(--mark) 1px no-repeat,
+      linear-gradient(var(--line-strong), var(--line-strong)) top left / 1px var(--mark) no-repeat,
+      linear-gradient(var(--line-strong), var(--line-strong)) top right / var(--mark) 1px no-repeat,
+      linear-gradient(var(--line-strong), var(--line-strong)) top right / 1px var(--mark) no-repeat,
+      linear-gradient(var(--line-strong), var(--line-strong)) bottom left / var(--mark) 1px no-repeat,
+      linear-gradient(var(--line-strong), var(--line-strong)) bottom left / 1px var(--mark) no-repeat,
+      linear-gradient(var(--line-strong), var(--line-strong)) bottom right / var(--mark) 1px no-repeat,
+      linear-gradient(var(--line-strong), var(--line-strong)) bottom right / 1px var(--mark) no-repeat;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: calc(18px + env(safe-area-inset-top)) 24px 0;
+  }
+
+  .masthead-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 14px;
+  }
+
+  .ident {
+    display: grid;
+    gap: 6px;
+  }
+
+  .wordmark {
+    margin: 0;
+    font: 400 22px/1 var(--mark-font);
+    letter-spacing: 0.32em;
+  }
+
+  /* readout cells: tiny field name over its value */
+  .readout {
+    display: flex;
+    margin: 0;
+  }
+
+  .readout div {
+    padding: 0 14px;
+    border-left: 1px solid var(--line);
+  }
+
+  .readout div:last-child { padding-right: 0; }
+
+  .readout dt { margin-bottom: 3px; }
+
+  .readout dd {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* ruler along the bottom of the masthead */
+  .ruler {
+    height: 9px;
+    border-top: 1px solid var(--line-strong);
+    background:
+      linear-gradient(90deg, var(--line-strong) 1px, transparent 1px) 0 0 / 64px 9px repeat-x,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 8px 4px repeat-x;
+  }
+
+  /* ---------- layout ---------- */
+
+  .console {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: var(--deck-width) minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+
+  /* ---------- deck ---------- */
+
+  /* the outer layer is the outline colour and the inner one is clipped 1px
+     smaller, so the outline follows the cut corners too */
+  .deck {
+    position: sticky;
+    top: 24px;
+    padding: 1px;
+    background: var(--line-strong);
+    clip-path: polygon(
+      var(--chamfer) 0, 100% 0,
+      100% calc(100% - var(--chamfer)), calc(100% - var(--chamfer)) 100%,
+      0 100%, 0 var(--chamfer)
+    );
+  }
+
+  .deck-inner {
+    padding: 14px 20px 16px;
+    background: var(--black);
+    clip-path: polygon(
+      calc(var(--chamfer) - 0.5px) 0, 100% 0,
+      100% calc(100% - var(--chamfer) + 0.5px), calc(100% - var(--chamfer) + 0.5px) 100%,
+      0 100%, 0 calc(var(--chamfer) - 0.5px)
+    );
+  }
+
+  .deck-close { display: none; }
+
+  /* spec line above the cover: what's loaded, in numbers */
+  .spec {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 8px var(--chamfer);
+  }
+
+  .spec-values {
+    display: flex;
+    gap: 10px;
+  }
+
+  .spec-values span + span {
+    padding-left: 10px;
+    border-left: 1px solid var(--line);
+  }
+
+  .cover {
+    position: relative;
+    aspect-ratio: 1;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* shown when a song has no cover: its initial on a hatched plate */
+  .cover-blank {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: repeating-linear-gradient(135deg, var(--black) 0 6px, var(--surface) 6px 7px);
+    color: var(--line-strong);
+    font: 400 clamp(40px, 9vw, 96px)/1 var(--mark-font);
+  }
+
+  /* the vacuum fluorescent readout, the one bright thing on the panel */
+  .vfd {
+    position: relative;
+    margin-top: 16px;
+    padding: 14px 14px 12px;
+    background: var(--glass);
+    border: 1px solid #000;
+    box-shadow: inset 0 0 0 1px #0d2420, inset 0 8px 24px rgb(0 0 0 / 0.6);
+    color: var(--vfd);
+    text-shadow: 0 0 6px rgb(125 249 228 / 0.55), 0 0 18px rgb(125 249 228 / 0.18);
+    overflow: hidden;
+  }
+
+  .vfd::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 3px);
+  }
+
+  .vfd-title {
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .vfd-artist, .vfd-album {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.78;
+  }
+
+  .vfd-album { opacity: 0.55; }
+
+  .vfd-time {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    font-size: 13px;
+  }
+
+  .seek {
+    --fill: 0%;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 18px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  /* segmented bar: glass-coloured gaps painted over a lit/unlit fill */
+  .seek::-webkit-slider-runnable-track {
+    height: 10px;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 5px, var(--glass) 5px 7px),
+      linear-gradient(90deg, var(--vfd) var(--fill), var(--vfd-dim) var(--fill));
+    box-shadow: 0 0 8px rgb(125 249 228 / 0.25);
+  }
+
+  .seek::-moz-range-track {
+    height: 10px;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 5px, var(--glass) 5px 7px),
+      linear-gradient(90deg, var(--vfd) var(--fill), var(--vfd-dim) var(--fill));
+    box-shadow: 0 0 8px rgb(125 249 228 / 0.25);
+  }
+
+  .seek::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 3px;
+    height: 16px;
+    margin-top: -3px;
+    background: #e9fffb;
+    border: 0;
+    border-radius: 0;
+    box-shadow: 0 0 6px var(--vfd);
+  }
+
+  .seek::-moz-range-thumb {
+    width: 3px;
+    height: 16px;
+    background: #e9fffb;
+    border: 0;
+    border-radius: 0;
+    box-shadow: 0 0 6px var(--vfd);
+  }
+
+  .seek:disabled { cursor: default; }
+  .seek:disabled::-webkit-slider-thumb { opacity: 0; }
+  .seek:disabled::-moz-range-thumb { opacity: 0; }
+
+  /* hardware keys */
+  .keys {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .key {
+    position: relative;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    color: var(--text);
+    background: linear-gradient(to bottom, #2a3456, #1f2844);
+    border: 1px solid var(--key-edge);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #0a0e1b;
+    transition: transform 0.05s, box-shadow 0.05s;
+  }
+
+  .key:hover { background: linear-gradient(to bottom, #303b62, #232d4c); }
+
+  .key:active {
+    transform: translateY(3px);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 0 0 #0a0e1b;
+  }
+
+  .key:disabled {
+    color: var(--key-edge);
+    cursor: default;
+  }
+
+  .key:disabled:active { transform: none; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #0a0e1b; }
+
+  /* indicator lamp in the corner of toggle keys and the play key */
+  .key .lamp {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+    background: var(--led-off);
+  }
+
+  .key[aria-pressed="true"] .lamp,
+  body.playing .key-play .lamp {
+    background: var(--led);
+    box-shadow: 0 0 8px var(--led);
+  }
+
+  /* status strip under the keys: how the queue will behave */
+  .status {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    margin: 16px 0 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .status div {
+    padding: 8px 12px 0 0;
+    min-width: 0;
+  }
+
+  .status div + div {
+    padding-left: 12px;
+    border-left: 1px solid var(--line);
+  }
+
+  .status dt { margin-bottom: 3px; }
+
+  .status dd {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ---------- library ---------- */
+
+  .library {
+    padding: 14px 16px 16px;
+  }
+
+  .library-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .library-head h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .search {
+    margin-left: auto;
+    position: relative;
+    width: min(320px, 100%);
+  }
+
+  .search svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  .search input {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px 0 36px;
+    background: var(--black);
+    border: 1px solid var(--line-strong);
+    border-radius: 0;
+    color: var(--text);
+    font: inherit;
+    font-size: 16px; /* stops iOS zooming in on focus */
+    outline: none;
+  }
+
+  .search input::placeholder { color: var(--faint); }
+  .search input:focus { border-color: var(--vfd); }
+
+  /* the song table: one column template shared by the header and the rows */
+  .table-head, .song {
+    display: grid;
+    grid-template-columns: 34px 44px minmax(0, 1fr) minmax(0, 0.75fr) 40px 40px 56px;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .table-head {
+    padding: 0 10px 6px 0;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .table-head .num, .table-head .right { text-align: right; }
+
+  .songs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .songs li { border-bottom: 1px solid var(--line); }
+
+  .song {
+    width: 100%;
+    padding: 6px 10px 6px 0;
+    text-align: left;
+    position: relative;
+  }
+
+  .song:hover { background: var(--surface); }
+
+  .song:focus-visible { outline-offset: -2px; }
+
+  .ref {
+    text-align: right;
+    color: var(--faint);
+    font-size: 12px;
+  }
+
+  .thumb {
+    width: 44px;
+    height: 44px;
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .thumb .cover-blank { font-size: 15px; }
+
+  .song-name, .song-artist, .song-album {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .song-name { font-weight: 500; }
+
+  .song-artist, .song-album {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .cell {
+    color: var(--muted);
+    font-size: 13px;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* the loaded song gets the amber lamp down its left edge */
+  .song.active { background: rgb(255 138 61 / 0.06); }
+
+  .song.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--led);
+    box-shadow: 0 0 10px var(--led);
+  }
+
+  body:not(.playing) .song.active::before { opacity: 0.5; box-shadow: none; }
+
+  .song.active .song-name, .song.active .ref { color: var(--led); }
+
+  .message {
+    padding: 40px 0 24px;
+    color: var(--muted);
+    max-width: 48ch;
+  }
+
+  .message strong {
+    display: block;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  /* ---------- compact deck bar for phones ---------- */
+
+  .minideck { display: none; }
+
+  @media (max-width: 1099px) {
+    .table-head, .song { grid-template-columns: 34px 44px minmax(0, 1fr) minmax(0, 0.75fr) 40px 56px; }
+    .col-year { display: none; }
+  }
+
+  @media (max-width: 959px) {
+    .masthead { padding-left: 16px; padding-right: 16px; }
+
+    .masthead-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+    }
+
+    /* phones: the readout becomes a 3-across grid, and the address cell
+       goes since you're already on the device it points to */
+    .readout {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      row-gap: 10px;
+    }
+
+    .readout div { padding: 0 10px; }
+    .readout div:nth-child(3n + 1) { padding-left: 0; border-left: 0; }
+    .readout .readout-address { display: none; }
+
+    .console {
+      display: block;
+      padding: 16px 16px calc(96px + env(safe-area-inset-bottom));
+    }
+
+    .library { padding: 12px 12px 14px; }
+    .library-head { flex-wrap: wrap; }
+    .search { width: 100%; }
+
+    .table-head, .song {
+      grid-template-columns: 44px minmax(0, 1fr) 40px;
+      gap: 12px;
+    }
+
+    .col-ref, .col-album, .col-size { display: none; }
+
+    /* the full deck slides up over the library */
+    .deck {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      overflow-y: auto;
+      padding: calc(16px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+      background: var(--black);
+      clip-path: none;
+      transform: translateY(100%);
+      visibility: hidden;
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s 0.28s;
+    }
+
+    .deck.open {
+      transform: none;
+      visibility: visible;
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .deck-inner {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 0;
+      clip-path: none;
+    }
+
+    .spec { margin-left: 0; }
+
+    .deck-close {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px auto;
+      padding: 8px 4px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .minideck {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) 64px;
+      align-items: center;
+      gap: 12px;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 4;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      background: var(--black);
+      border-top: 1px solid var(--line-strong);
+    }
+
+    .minideck-open {
+      display: contents;
+      text-align: left;
+    }
+
+    .minideck .vfd {
+      margin: 0;
+      padding: 7px 10px;
+    }
+
+    .minideck .vfd-title { font-size: 15px; }
+    .minideck .vfd-artist { font-size: 12px; }
+
+    .minideck .key { height: 48px; }
+
+    .mini-progress {
+      position: absolute;
+      left: 0;
+      top: -1px;
+      height: 2px;
+      width: var(--fill, 0%);
+      background: var(--vfd);
+      box-shadow: 0 0 6px var(--vfd);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .deck, .deck.open { transition: none; }
+    .key { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-row">
+    <div class="ident">
+      <h1 class="wordmark">SONDE</h1>
+      <span class="micro">Self-hosted music server</span>
+    </div>
+    <dl class="readout" id="readout">
+      <div><dt class="micro">Songs</dt><dd id="stat-songs">0</dd></div>
+      <div><dt class="micro">MP3</dt><dd id="stat-mp3">0</dd></div>
+      <div><dt class="micro">FLAC</dt><dd id="stat-flac">0</dd></div>
+      <div><dt class="micro">With covers</dt><dd id="stat-covers">0</dd></div>
+      <div><dt class="micro">Library size</dt><dd id="stat-size">0 MB</dd></div>
+      <div class="readout-address"><dt class="micro">Open on another device at</dt><dd id="stat-address"></dd></div>
+    </dl>
+  </div>
+  <div class="ruler" aria-hidden="true"></div>
+</header>
+
+<div class="console">
+  <section class="deck" id="deck" aria-label="Now playing">
+    <div class="deck-inner">
+      <button class="deck-close" id="deck-close" type="button">
+        Back to library
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+
+      <div class="spec micro">
+        <span>Now playing</span>
+        <span class="spec-values" id="spec"></span>
+      </div>
+
+      <div class="cover" id="cover"></div>
+
+      <div class="vfd">
+        <div class="vfd-title" id="title">Ready</div>
+        <div class="vfd-artist" id="artist">Pick a song from the library</div>
+        <div class="vfd-album" id="album">&nbsp;</div>
+        <div class="vfd-time">
+          <span id="time-current">0:00</span>
+          <input class="seek" id="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Position in song" disabled>
+          <span id="time-total">0:00</span>
+        </div>
+      </div>
+
+      <div class="keys">
+        <button class="key" id="shuffle" type="button" aria-pressed="false" aria-label="Shuffle" title="Shuffle">
+          <span class="lamp"></span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M16 4h4v4M4 20 20 4M20 16v4h-4M15 15l5 5M4 4l5 5"/></svg>
+        </button>
+        <button class="key" id="prev" type="button" aria-label="Previous song" title="Previous song" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5h3v14H5zM20 5v14L9 12z"/></svg>
+        </button>
+        <button class="key key-play" id="play" type="button" aria-label="Play" title="Play (Space)" disabled>
+          <span class="lamp"></span>
+          <svg class="icon-play" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>
+          <svg class="icon-pause" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" hidden><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+        </button>
+        <button class="key" id="next" type="button" aria-label="Next song" title="Next song" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h3v14h-3zM4 5v14l11-7z"/></svg>
+        </button>
+        <button class="key" id="repeat" type="button" aria-pressed="false" aria-label="Repeat this song" title="Repeat this song">
+          <span class="lamp"></span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M17 3l3 3-3 3"/><path d="M4 11V6h16M7 21l-3-3 3-3"/><path d="M20 13v5H4"/></svg>
+        </button>
+      </div>
+
+      <dl class="status">
+        <div><dt class="micro">Order</dt><dd id="status-order">In order</dd></div>
+        <div><dt class="micro">Repeat</dt><dd id="status-repeat">Off</dd></div>
+        <div><dt class="micro">Up next</dt><dd id="status-next">Nothing yet</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <main class="library marked">
+    <div class="library-head">
+      <h2>Library</h2>
+      <label class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input id="search" type="search" placeholder="Search songs, artists, albums" autocomplete="off" spellcheck="false" aria-label="Search the library">
+      </label>
+    </div>
+
+    <div class="table-head micro" aria-hidden="true">
+      <span class="num col-ref">No.</span>
+      <span>Cover</span>
+      <span>Title and artist</span>
+      <span class="col-album">Album</span>
+      <span class="right col-year">Year</span>
+      <span class="right">Type</span>
+      <span class="right col-size">Size</span>
+    </div>
+    <ol class="songs" id="songs"></ol>
+    <div class="message" id="message" hidden></div>
+  </main>
+</div>
+
+<div class="minideck" id="minideck">
+  <div class="mini-progress" id="mini-progress"></div>
+  <button class="minideck-open" id="minideck-open" type="button" aria-label="Show now playing">
+    <div class="thumb" id="mini-cover"></div>
+    <div class="vfd">
+      <div class="vfd-title" id="mini-title">Ready</div>
+      <div class="vfd-artist" id="mini-artist">Pick a song</div>
+    </div>
+  </button>
+  <button class="key key-play" id="mini-play" type="button" aria-label="Play" disabled>
+    <span class="lamp"></span>
+    <svg class="icon-play" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>
+    <svg class="icon-pause" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" hidden><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+  </button>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+const audio = new Audio();
+audio.preload = "auto";
+
+let songs = [];       // { file, title, artist, album, year, track, format, size, art, row }
+let order = [];       // song indices in play order (shuffled or not)
+let current = -1;     // index into songs
+let shuffle = false;
+let repeat = false;
+let seeking = false;
+
+// "Artist - Title.mp3" -> { artist, title }, used when a song has no tags
+function parseFileName(file) {
+  const dot = file.lastIndexOf(".");
+  const base = dot > 0 ? file.slice(0, dot) : file;
+  const split = base.indexOf(" - ");
+
+  if (split > 0) {
+    return { artist: base.slice(0, split), title: base.slice(split + 3) };
+  }
+  return { artist: "", title: base };
+}
+
+function songFromTags(tags) {
+  const fallback = parseFileName(tags.file);
+  const dot = tags.file.lastIndexOf(".");
+
+  return {
+    file: tags.file,
+    title: tags.title || fallback.title,
+    // ID3v2.3 separates several artists with "/"
+    artist: (tags.artist || fallback.artist).replace(/\s*\/\s*/g, " / "),
+    album: tags.album,
+    year: tags.year,
+    track: tags.track,
+    format: dot > 0 ? tags.file.slice(dot + 1).toUpperCase() : "",
+    size: tags.size,
+    art: tags.art,
+  };
+}
+
+const songUrl = (song) => "/songs/" + encodeURIComponent(song.file);
+const artUrl = (song) => "/art/" + encodeURIComponent(song.file);
+
+function initial(text) {
+  const match = text.match(/[\p{L}\p{N}]/u);
+  return match ? match[0].toUpperCase() : "?";
+}
+
+// the cover image, or a hatched plate with the song's initial
+function coverElement(song) {
+  if (song && song.art) {
+    const img = document.createElement("img");
+    img.src = artUrl(song);
+    img.alt = "";
+    img.loading = "lazy";
+    img.decoding = "async";
+    return img;
+  }
+  const blank = document.createElement("div");
+  blank.className = "cover-blank";
+  blank.textContent = song ? initial(song.title) : "";
+  return blank;
+}
+
+function albumLine(song) {
+  if (song.album && song.year) {
+    return `${song.album} (${song.year})`;
+  }
+  return song.album || song.year || "";
+}
+
+function formatTime(seconds) {
+  if (!isFinite(seconds) || seconds < 0) {
+    return "0:00";
+  }
+  const s = Math.floor(seconds);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+function formatSize(bytes) {
+  if (bytes >= 1e9) {
+    return `${(bytes / 1e9).toFixed(1)} GB`;
+  }
+  if (bytes >= 1e6) {
+    return `${(bytes / 1e6).toFixed(1)} MB`;
+  }
+  return `${Math.ceil(bytes / 1e3)} KB`;
+}
+
+function cell(className, text) {
+  const el = document.createElement("div");
+  el.className = className;
+  el.textContent = text;
+  return el;
+}
+
+function renderSongs() {
+  const list = $("songs");
+  list.replaceChildren();
+
+  songs.forEach((song, i) => {
+    const li = document.createElement("li");
+    const row = document.createElement("button");
+    row.className = "song";
+    row.type = "button";
+
+    const thumb = document.createElement("div");
+    thumb.className = "thumb";
+    thumb.append(coverElement(song));
+
+    const text = document.createElement("div");
+    text.append(
+      cell("song-name", song.title),
+      cell("song-artist", song.artist || "Unknown artist"),
+    );
+
+    row.append(
+      cell("ref col-ref", String(i + 1).padStart(3, "0")),
+      thumb,
+      text,
+      cell("song-album col-album", song.album),
+      cell("cell col-year", song.year),
+      cell("cell", song.format),
+      cell("cell col-size", formatSize(song.size)),
+    );
+
+    row.addEventListener("click", () => {
+      if (i === current) {
+        togglePlay();
+      } else {
+        playSong(i);
+      }
+    });
+
+    li.append(row);
+    list.append(li);
+    song.row = row;
+  });
+}
+
+function renderReadout() {
+  const count = (format) => songs.filter((song) => song.format === format).length;
+
+  $("stat-songs").textContent = songs.length;
+  $("stat-mp3").textContent = count("MP3");
+  $("stat-flac").textContent = count("FLAC");
+  $("stat-covers").textContent = songs.filter((song) => song.art).length;
+  $("stat-size").textContent = formatSize(songs.reduce((total, song) => total + song.size, 0));
+}
+
+function showMessage(title, detail) {
+  const message = $("message");
+  const strong = document.createElement("strong");
+  strong.textContent = title;
+  message.replaceChildren(strong, document.createTextNode(detail));
+  message.hidden = false;
+}
+
+function applySearch() {
+  const query = $("search").value.trim().toLowerCase();
+  let shown = 0;
+
+  for (const song of songs) {
+    const haystack = `${song.title} ${song.artist} ${song.album} ${song.file}`.toLowerCase();
+    const match = !query || haystack.includes(query);
+    song.row.parentElement.hidden = !match;
+    shown += match;
+  }
+
+  if (songs.length && shown === 0) {
+    showMessage(`No songs match "${$("search").value.trim()}"`, "Try part of a title, artist or album.");
+  } else if (songs.length) {
+    $("message").hidden = true;
+  }
+}
+
+function buildOrder() {
+  order = songs.map((_, i) => i);
+
+  if (shuffle) {
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    // keep the current song first so "next" doesn't replay it
+    if (current >= 0) {
+      order.splice(order.indexOf(current), 1);
+      order.unshift(current);
+    }
+  }
+}
+
+function nextIndex(direction) {
+  const position = order.indexOf(current);
+  return order[(position + direction + order.length) % order.length];
+}
+
+function updateStatus() {
+  $("status-order").textContent = shuffle ? "Shuffled" : "In order";
+  $("status-repeat").textContent = repeat ? "This song" : "Off";
+
+  if (current < 0) {
+    $("status-next").textContent = songs.length ? songs[order[0]].title : "Nothing yet";
+  } else {
+    $("status-next").textContent = repeat ? songs[current].title : songs[nextIndex(1)].title;
+  }
+}
+
+function showNowPlaying(song) {
+  $("cover").replaceChildren(coverElement(song));
+  $("mini-cover").replaceChildren(coverElement(song));
+  $("title").textContent = song.title;
+  $("mini-title").textContent = song.title;
+  $("artist").textContent = song.artist || "Unknown artist";
+  $("mini-artist").textContent = song.artist || "Unknown artist";
+  $("album").textContent = albumLine(song) || " ";
+  document.title = `${song.title} | Sonde`;
+
+  const spec = [];
+  if (song.track) {
+    spec.push(`Track ${song.track}`);
+  }
+  spec.push(song.format, formatSize(song.size));
+  $("spec").replaceChildren(...spec.map((text) => {
+    const span = document.createElement("span");
+    span.textContent = text;
+    return span;
+  }));
+
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: song.title,
+      artist: song.artist,
+      album: song.album,
+      artwork: song.art ? [{ src: new URL(artUrl(song), location.href).href }] : [],
+    });
+  }
+}
+
+function playSong(i) {
+  const song = songs[i];
+  if (!song) {
+    return;
+  }
+
+  if (current >= 0) {
+    songs[current].row.classList.remove("active");
+  }
+  current = i;
+  song.row.classList.add("active");
+
+  audio.src = songUrl(song);
+  audio.play().catch(() => {});
+  showNowPlaying(song);
+  updateStatus();
+
+  for (const id of ["play", "mini-play", "prev", "next", "seek"]) {
+    $(id).disabled = false;
+  }
+}
+
+function step(direction) {
+  if (songs.length) {
+    playSong(nextIndex(direction));
+  }
+}
+
+function previous() {
+  // like most players: first press restarts the song, second goes back
+  if (audio.currentTime > 3) {
+    audio.currentTime = 0;
+  } else {
+    step(-1);
+  }
+}
+
+function togglePlay() {
+  if (current < 0) {
+    if (songs.length) {
+      playSong(order[0]);
+    }
+    return;
+  }
+  if (audio.paused) {
+    audio.play().catch(() => {});
+  } else {
+    audio.pause();
+  }
+}
+
+function updatePlayState() {
+  const playing = !audio.paused;
+  document.body.classList.toggle("playing", playing);
+
+  for (const key of [$("play"), $("mini-play")]) {
+    // svg elements have no .hidden property, so set the attribute
+    key.querySelector(".icon-play").toggleAttribute("hidden", playing);
+    key.querySelector(".icon-pause").toggleAttribute("hidden", !playing);
+    key.setAttribute("aria-label", playing ? "Pause" : "Play");
+  }
+
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.playbackState = playing ? "playing" : "paused";
+  }
+}
+
+function updateProgress() {
+  const duration = audio.duration;
+  const fraction = duration ? audio.currentTime / duration : 0;
+
+  if (!seeking) {
+    $("seek").value = Math.round(fraction * 1000);
+    $("seek").style.setProperty("--fill", `${fraction * 100}%`);
+    $("time-current").textContent = formatTime(audio.currentTime);
+  }
+  $("mini-progress").style.setProperty("--fill", `${fraction * 100}%`);
+  $("time-total").textContent = formatTime(duration);
+}
+
+function setDeckOpen(open) {
+  $("deck").classList.toggle("open", open);
+  if (open) {
+    $("deck-close").focus();
+  }
+}
+
+// ---------- wiring ----------
+
+audio.addEventListener("play", updatePlayState);
+audio.addEventListener("pause", updatePlayState);
+audio.addEventListener("timeupdate", updateProgress);
+audio.addEventListener("loadedmetadata", updateProgress);
+audio.addEventListener("ended", () => {
+  if (repeat) {
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  } else {
+    step(1);
+  }
+});
+audio.addEventListener("error", () => {
+  if (current >= 0) {
+    $("title").textContent = "Can't play this song";
+    $("artist").textContent = songs[current].file;
+  }
+});
+
+$("play").addEventListener("click", togglePlay);
+$("mini-play").addEventListener("click", togglePlay);
+$("next").addEventListener("click", () => step(1));
+$("prev").addEventListener("click", previous);
+
+$("shuffle").addEventListener("click", () => {
+  shuffle = !shuffle;
+  $("shuffle").setAttribute("aria-pressed", shuffle);
+  buildOrder();
+  updateStatus();
+});
+
+$("repeat").addEventListener("click", () => {
+  repeat = !repeat;
+  $("repeat").setAttribute("aria-pressed", repeat);
+  updateStatus();
+});
+
+$("seek").addEventListener("input", () => {
+  seeking = true;
+  const fraction = $("seek").value / 1000;
+  $("seek").style.setProperty("--fill", `${fraction * 100}%`);
+  $("time-current").textContent = formatTime(fraction * (audio.duration || 0));
+});
+
+$("seek").addEventListener("change", () => {
+  if (audio.duration) {
+    audio.currentTime = ($("seek").value / 1000) * audio.duration;
+  }
+  seeking = false;
+});
+
+$("search").addEventListener("input", applySearch);
+$("minideck-open").addEventListener("click", () => setDeckOpen(true));
+$("deck-close").addEventListener("click", () => setDeckOpen(false));
+
+document.addEventListener("keydown", (event) => {
+  const typing = event.target.matches("input[type=search]");
+
+  if (event.key === "Escape" && $("deck").classList.contains("open")) {
+    setDeckOpen(false);
+  } else if (event.key === "/" && !typing) {
+    event.preventDefault();
+    $("search").focus();
+  } else if (event.key === "Escape" && typing) {
+    $("search").value = "";
+    applySearch();
+    $("search").blur();
+  } else if (typing || event.target.matches("button, input")) {
+    return;
+  } else if (event.key === " ") {
+    event.preventDefault();
+    togglePlay();
+  } else if (event.key === "ArrowRight" && audio.duration) {
+    audio.currentTime = Math.min(audio.duration, audio.currentTime + 5);
+  } else if (event.key === "ArrowLeft" && audio.duration) {
+    audio.currentTime = Math.max(0, audio.currentTime - 5);
+  }
+});
+
+// lock screen and headphone buttons on phones
+if ("mediaSession" in navigator) {
+  const handlers = {
+    play: () => audio.play(),
+    pause: () => audio.pause(),
+    previoustrack: previous,
+    nexttrack: () => step(1),
+    seekto: (details) => { audio.currentTime = details.seekTime; },
+  };
+  for (const [action, handler] of Object.entries(handlers)) {
+    try {
+      navigator.mediaSession.setActionHandler(action, handler);
+    } catch {
+      // older browsers don't know every action
+    }
+  }
+}
+
+async function loadSongs() {
+  try {
+    const response = await fetch("/api/songs");
+    if (!response.ok) {
+      throw new Error(response.status);
+    }
+
+    songs = (await response.json()).map(songFromTags);
+    renderSongs();
+    renderReadout();
+    buildOrder();
+    updateStatus();
+
+    // play works before anything is picked, it starts the first song
+    $("play").disabled = $("mini-play").disabled = !songs.length;
+
+    if (!songs.length) {
+      showMessage("This folder has no songs yet", "Add .mp3 or .flac files to it, then reload this page.");
+    }
+  } catch {
+    showMessage("Can't reach the Sonde server", "Check that sonded is still running, then reload this page.");
+  }
+}
+
+$("stat-address").textContent = location.host;
+$("cover").append(coverElement(null));
+$("mini-cover").append(coverElement(null));
+loadSongs();
+</script>
+</body>
+</html>
