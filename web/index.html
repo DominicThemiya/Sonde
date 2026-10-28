@@ -552,7 +552,8 @@
 
   .key-small[aria-pressed="true"] { color: var(--text); }
 
-  .dial-toggle {
+  /* small toggle keys with a label and an icon, lamp on the right */
+  .toggle-key {
     display: flex;
     align-items: center;
     gap: 7px;
@@ -560,7 +561,39 @@
     padding: 0 22px 0 11px;
   }
 
-  .dial-toggle .lamp { top: calc(50% - 3px); right: 8px; }
+  .toggle-key .lamp { top: calc(50% - 3px); right: 8px; }
+
+  /* ---------- spectrum analyser ----------
+     segmented bars on the same glass as the readout. the scanlines from
+     .vfd::after lie over the canvas, which makes it look like a real tube */
+
+  .spectrum { padding: 8px 10px 5px; }
+
+  .spectrum canvas {
+    display: block;
+    width: 100%;
+    height: 56px;
+    filter: drop-shadow(0 0 3px rgb(125 249 228 / 0.4));
+  }
+
+  .spectrum-scale {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    color: var(--vfd);
+    opacity: 0.5;
+    text-shadow: none;
+  }
+
+  .library .spectrum { margin: 0 0 14px; }
+  .library .spectrum canvas { height: 64px; }
+
+  body.no-spectrum .spectrum { display: none; }
+
+  .deck-toggles {
+    display: flex;
+    gap: 8px;
+  }
 
   /* library wheel: phones only, see the media query below */
   .wheel, .wheel-readout { display: none; }
@@ -624,8 +657,9 @@
     font-weight: 600;
   }
 
+  .library-head .toggle-key { margin-left: auto; }
+
   .search {
-    margin-left: auto;
     position: relative;
     width: min(320px, 100%);
   }
@@ -866,13 +900,25 @@
     .deck-inner .vfd-time { margin-top: 8px; }
     .deck-inner .keys { margin-top: 12px; }
     .dial-unit { max-width: 250px; padding-top: 10px; }
+    .deck-inner .spectrum { margin-top: 8px; padding: 6px 8px 5px; }
+    .deck-inner .spectrum canvas { height: 38px; }
+    .deck-inner .spectrum-scale { display: none; }
+
+    /* short phones: the status strip goes (the shuffle and repeat lamps
+       already say the same) and the analyser gets lower */
+    @media (max-height: 720px) {
+      .deck-inner .status { display: none; }
+      .deck-inner .spectrum canvas { height: 30px; }
+    }
+    .library .spectrum canvas { height: 48px; }
     .dial-modes { margin-top: 8px; }
     .deck-inner .status { margin-top: 12px; }
 
     .deck-close {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      white-space: nowrap;
       padding: 6px 4px;
       color: var(--muted);
       font-size: 14px;
@@ -1056,13 +1102,20 @@
   <section class="deck" id="deck" aria-label="Now playing">
     <div class="deck-inner">
       <div class="deck-top">
-        <button class="key key-small dial-toggle" id="dial-toggle" type="button" aria-pressed="true" aria-controls="dial-drawer" title="Show or hide the dial">
-          <span class="lamp"></span>
-          <svg width="16" height="9" viewBox="0 0 16 9" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 8.5a7 7 0 0 1 14 0"/><path d="M8 8.5V3"/></svg>
-          Dial
-        </button>
-        <button class="deck-close" id="deck-close" type="button">
-          Back to library
+        <div class="deck-toggles">
+          <button class="key key-small toggle-key" id="dial-toggle" type="button" aria-pressed="true" aria-controls="dial-drawer" title="Show or hide the dial">
+            <span class="lamp"></span>
+            <svg width="16" height="9" viewBox="0 0 16 9" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 8.5a7 7 0 0 1 14 0"/><path d="M8 8.5V3"/></svg>
+            Dial
+          </button>
+          <button class="key key-small toggle-key spectrum-toggle" type="button" aria-pressed="true" title="Show or hide the spectrum analyser">
+            <span class="lamp"></span>
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><path d="M0 6h2v4H0zM3 2h2v8H3zM6 4h2v6H6zM9 0h2v10H9zM12 5h2v5h-2z"/></svg>
+            Spectrum
+          </button>
+        </div>
+        <button class="deck-close" id="deck-close" type="button" aria-label="Back to library">
+          Library
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
         </button>
       </div>
@@ -1083,6 +1136,11 @@
           <input class="seek" id="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Position in song" disabled>
           <span id="time-total">0:00</span>
         </div>
+      </div>
+
+      <div class="spectrum vfd" id="deck-spectrum" aria-hidden="true">
+        <canvas></canvas>
+        <div class="spectrum-scale micro"><span>40</span><span>180</span><span>800</span><span>3.6k</span><span>16k Hz</span></div>
       </div>
 
       <div class="keys">
@@ -1143,10 +1201,20 @@
   <main class="library marked">
     <div class="library-head">
       <h2>Library</h2>
+      <button class="key key-small toggle-key spectrum-toggle" type="button" aria-pressed="true" title="Show or hide the spectrum analyser">
+        <span class="lamp"></span>
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><path d="M0 6h2v4H0zM3 2h2v8H3zM6 4h2v6H6zM9 0h2v10H9zM12 5h2v5h-2z"/></svg>
+        Spectrum
+      </button>
       <label class="search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
         <input id="search" type="search" placeholder="Search songs, artists, albums" autocomplete="off" spellcheck="false" aria-label="Search the library">
       </label>
+    </div>
+
+    <div class="spectrum vfd" id="library-spectrum" aria-hidden="true">
+      <canvas></canvas>
+      <div class="spectrum-scale micro"><span>40</span><span>180</span><span>800</span><span>3.6k</span><span>16k Hz</span></div>
     </div>
 
     <div class="table-head micro" aria-hidden="true">
@@ -1530,11 +1598,13 @@ function setDeckOpen(open) {
   if (open) {
     $("deck-close").focus();
   }
+  wakeSpectrum();
 }
 
 // ---------- wiring ----------
 
 audio.addEventListener("play", updatePlayState);
+audio.addEventListener("play", () => wakeSpectrum());
 audio.addEventListener("pause", updatePlayState);
 audio.addEventListener("timeupdate", updateProgress);
 audio.addEventListener("loadedmetadata", updateProgress);
@@ -2175,6 +2245,238 @@ $("dial-toggle").addEventListener("click", () => {
   clicks.confirm();
 });
 
+// ---------- spectrum analyser ----------
+
+// band edges and the loudness range the bars cover
+const SPECTRUM_LOW = 40;
+const SPECTRUM_HIGH = 16000;
+const SPECTRUM_FLOOR = -80;
+const SPECTRUM_CEILING = -14;
+const SPECTRUM_TILT = 18;     // dB added across the range, highs are quieter in music
+const SPECTRUM_CONTRAST = 1.5; // bends levels down so the bars move more
+
+const SEGMENT_LIT = "#7df9e4";
+const SEGMENT_HOT = "#ff8a3d";
+const SEGMENT_PEAK = "#e9fffb";
+const SEGMENT_GHOST = "rgb(125 249 228 / 0.08)";
+
+// seeing the sound means routing the player through Web Audio, and on
+// iPhone that can go quiet when the screen locks, so it starts off there
+let spectrumShown = loadSetting("sonde-spectrum", volumeWorks ? "shown" : "hidden") === "shown";
+let analyser = null;
+let analyserBins = null;
+let spectrumFrame = 0;
+let spectrumLast = 0;
+
+// each canvas with how many bars and segments fit it, and each bar's level and peak
+const spectrumPanels = ["deck-spectrum", "library-spectrum"].map((id) => ({
+  el: $(id),
+  canvas: $(id).querySelector("canvas"),
+  bars: 0,
+  segments: 0,
+  edges: [],
+  levels: null,
+  peaks: null,
+  held: null,
+}));
+
+// hook the player into an analyser. browsers only start audio from a touch
+// or key press, so this runs on those. once routed it stays routed
+function connectSpectrum() {
+  if (analyser) {
+    if (analyser.context.state === "suspended") {
+      analyser.context.resume();
+    }
+    return;
+  }
+  if (!spectrumShown) {
+    return;
+  }
+
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = ctx.createMediaElementSource(audio);
+
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 4096;
+    analyser.smoothingTimeConstant = 0.55;
+    source.connect(analyser);
+    analyser.connect(ctx.destination);
+    analyserBins = new Float32Array(analyser.frequencyBinCount);
+  } catch {
+    analyser = null;
+  }
+}
+
+addEventListener("pointerup", connectSpectrum, true);
+addEventListener("keydown", connectSpectrum, true);
+
+// fit bars and segments to the canvas's size on screen
+function sizeSpectrum(panel) {
+  const rect = panel.canvas.getBoundingClientRect();
+  const dpr = devicePixelRatio || 1;
+
+  panel.canvas.width = Math.round(rect.width * dpr);
+  panel.canvas.height = Math.round(rect.height * dpr);
+  panel.bars = Math.min(64, Math.max(12, Math.round(rect.width / 11)));
+  panel.segments = Math.max(6, Math.floor(rect.height / 4));
+
+  // bands spaced evenly in pitch, like the keys on a piano
+  panel.edges = [];
+  for (let i = 0; i <= panel.bars; i++) {
+    panel.edges.push(SPECTRUM_LOW * Math.pow(SPECTRUM_HIGH / SPECTRUM_LOW, i / panel.bars));
+  }
+  panel.levels = new Float32Array(panel.bars);
+  panel.peaks = new Float32Array(panel.bars);
+  panel.held = new Float32Array(panel.bars);
+}
+
+// is this panel on screen right now? on phones the deck covers the library
+function panelOnScreen(panel) {
+  if (!panel.bars || !panel.el.offsetParent) {
+    return false;
+  }
+  if (!phone.matches) {
+    return true;
+  }
+  const deckOpen = document.body.classList.contains("deck-open");
+  return panel.el.id === "deck-spectrum" ? deckOpen : !deckOpen;
+}
+
+function drawSpectrum(now) {
+  const dt = Math.min(0.05, (now - spectrumLast) / 1000);
+  spectrumLast = now;
+
+  const live = analyser && !audio.paused;
+  let moving = live;
+
+  if (live) {
+    analyser.getFloatFrequencyData(analyserBins);
+  }
+  const binHz = analyser ? analyser.context.sampleRate / analyser.fftSize : 1;
+
+  // the analyser hears the sound after the volume, so undo that and the
+  // bars show the music rather than how loud it's turned up
+  const lift = -20 * Math.log10(Math.max(0.05, audio.volume));
+
+  for (const panel of spectrumPanels) {
+    if (!panelOnScreen(panel)) {
+      continue;
+    }
+
+    const { canvas, bars, segments, levels, peaks, held, edges } = panel;
+    const g = canvas.getContext("2d");
+    const dpr = devicePixelRatio || 1;
+    const gap = Math.max(1, Math.round(2 * dpr));
+    const segmentGap = Math.max(1, Math.round(dpr));
+    const barWidth = (canvas.width - gap * (bars - 1)) / bars;
+    const segmentHeight = (canvas.height - segmentGap * (segments - 1)) / segments;
+    const hotFrom = Math.round(segments * 0.82);
+
+    const paths = { ghost: new Path2D(), lit: new Path2D(), hot: new Path2D(), peak: new Path2D() };
+
+    for (let i = 0; i < bars; i++) {
+      let target = 0;
+
+      if (live) {
+        const lo = Math.floor(edges[i] / binHz);
+        const hi = Math.max(lo, Math.floor(edges[i + 1] / binHz));
+        let db = -Infinity;
+
+        for (let k = lo; k <= hi && k < analyserBins.length; k++) {
+          db = Math.max(db, analyserBins[k]);
+        }
+        // music is quieter up high, so tilt it up or the right side sits empty
+        db += lift + (i / bars) * SPECTRUM_TILT;
+        const level = Math.min(1, Math.max(0, (db - SPECTRUM_FLOOR) / (SPECTRUM_CEILING - SPECTRUM_FLOOR)));
+        target = Math.pow(level, SPECTRUM_CONTRAST);
+      }
+
+      // bars jump up and fall back, peaks hang for a moment then drop
+      levels[i] = target > levels[i] ? target : Math.max(target, levels[i] - 1.8 * dt);
+
+      if (levels[i] >= peaks[i]) {
+        peaks[i] = levels[i];
+        held[i] = now;
+      } else if (now - held[i] > 450) {
+        peaks[i] = Math.max(levels[i], peaks[i] - 0.6 * dt);
+      }
+
+      if (levels[i] > 0.001 || peaks[i] > 0.001) {
+        moving = true;
+      }
+
+      const lit = Math.round(levels[i] * segments);
+      const peak = peaks[i] > 0.04 ? Math.min(segments - 1, Math.ceil(peaks[i] * segments) - 1) : -1;
+      const x = Math.round(i * (barWidth + gap));
+      const width = Math.round((i + 1) * (barWidth + gap) - gap) - x;
+
+      for (let s = 0; s < segments; s++) {
+        const y = Math.round(canvas.height - (s + 1) * segmentHeight - s * segmentGap);
+        const height = Math.max(1, Math.round(segmentHeight));
+        const path = s < lit ? (s >= hotFrom ? paths.hot : paths.lit) : s === peak ? paths.peak : paths.ghost;
+        path.rect(x, y, width, height);
+      }
+    }
+
+    g.clearRect(0, 0, canvas.width, canvas.height);
+    g.fillStyle = SEGMENT_GHOST;
+    g.fill(paths.ghost);
+    g.fillStyle = SEGMENT_LIT;
+    g.fill(paths.lit);
+    g.fillStyle = SEGMENT_HOT;
+    g.fill(paths.hot);
+    g.fillStyle = SEGMENT_PEAK;
+    g.fill(paths.peak);
+  }
+
+  // stop drawing once it's paused and everything has fallen to the floor
+  spectrumFrame = moving ? requestAnimationFrame(drawSpectrum) : 0;
+}
+
+function wakeSpectrum() {
+  if (spectrumShown && !spectrumFrame) {
+    spectrumLast = performance.now();
+    spectrumFrame = requestAnimationFrame(drawSpectrum);
+  }
+}
+
+const spectrumResize = new ResizeObserver(() => {
+  for (const panel of spectrumPanels) {
+    if (panel.el.offsetParent) {
+      sizeSpectrum(panel);
+    }
+  }
+  wakeSpectrum();
+});
+
+for (const panel of spectrumPanels) {
+  spectrumResize.observe(panel.canvas);
+}
+
+function setSpectrumShown(shown) {
+  spectrumShown = shown;
+  document.body.classList.toggle("no-spectrum", !shown);
+  for (const key of document.querySelectorAll(".spectrum-toggle")) {
+    key.setAttribute("aria-pressed", shown);
+  }
+  saveSetting("sonde-spectrum", shown ? "shown" : "hidden");
+
+  // the library's analyser sits above the list, so the rows moved
+  measureRows();
+  followScroll();
+  wakeSpectrum();
+}
+
+for (const key of document.querySelectorAll(".spectrum-toggle")) {
+  key.addEventListener("click", () => {
+    setSpectrumShown(!spectrumShown);
+    // this click is the touch that lets audio start, so hook it up now
+    connectSpectrum();
+    clicks.confirm();
+  });
+}
+
 // arrow keys turn the dial one step for keyboard users
 $("dial").addEventListener("keydown", (event) => {
   const direction = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[event.key];
@@ -2485,6 +2787,7 @@ $("clicks").setAttribute("aria-pressed", clicks.on);
 deckDial.setValue(0, false);
 setDialShown(loadSetting("sonde-dial", "shown") === "shown");
 wheel.setValue(0, false);
+setSpectrumShown(spectrumShown);
 
 $("stat-address").textContent = location.host;
 $("cover").append(coverElement(null));
