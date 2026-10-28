@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
+
+#include "platform.h"
+#include "text.h"
 
 #define PORT 8080
 
@@ -17,7 +17,7 @@
 #define CHOICE_BUFFER_SIZE 32
 
 // keep sending until all len bytes are out, -1 on error
-int send_all(int fd, const char* buf, size_t len) {
+int send_all(sock_t fd, const char* buf, size_t len) {
     size_t sent = 0;
 
     while (sent < len) {
@@ -31,19 +31,20 @@ int send_all(int fd, const char* buf, size_t len) {
     return 0;
 }
 
-// connect to sonded and send a GET for path. returns the socket, -1 on error
-int send_get(const char* path) {
-    int conn_fd = socket(AF_INET, SOCK_STREAM, 0);
+// connect to sonded and send a GET for path. returns the socket, SOCK_INVALID on error
+sock_t send_get(const char* path) {
+    sock_t conn_fd = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (conn_fd == -1) {
-        perror("socket");
-        return -1;
+    if (conn_fd == SOCK_INVALID) {
+        sock_perror("socket");
+        return SOCK_INVALID;
     }
 
+    // sonded on this machine. Windows won't connect to 0.0.0.0
     struct sockaddr_in serv_addr = {0};
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
     int connect_err = connect(
         conn_fd,
@@ -52,9 +53,9 @@ int send_get(const char* path) {
     );
 
     if (connect_err) {
-        perror("connect");
-        close(conn_fd);
-        return -1;
+        sock_perror("connect");
+        sock_close(conn_fd);
+        return SOCK_INVALID;
     }
 
     char request[SONG_PATH_SIZE + 128];
@@ -69,17 +70,31 @@ int send_get(const char* path) {
     );
 
     if (send_all(conn_fd, request, request_len) == -1) {
-        perror("send");
-        close(conn_fd);
-        return -1;
+        sock_perror("send");
+        sock_close(conn_fd);
+        return SOCK_INVALID;
     }
 
     return conn_fd;
 }
 
+// where a response body goes: a file like stdout, or text in memory
+struct body_out {
+    FILE* file;
+    struct text* text;
+};
+
+// -1 on error
+int write_out(struct body_out* out, const char* data, size_t len) {
+    if (out->text) {
+        return text_append(out->text, data, len);
+    }
+    return fwrite(data, 1, len, out->file) == len ? 0 : -1;
+}
+
 // read the response headers and check for 200 OK. any body bytes that
 // arrived with the headers are written to out. -1 on error
-int read_headers(int conn_fd, FILE* out) {
+int read_headers(sock_t conn_fd, struct body_out* out) {
     char header_buf[HEADER_BUFFER_SIZE];
     size_t header_len = 0;
     char* header_end = NULL;
@@ -98,7 +113,7 @@ int read_headers(int conn_fd, FILE* out) {
 
         if (n <= 0) {
             if (n == -1) {
-                perror("recv");
+                sock_perror("recv");
             } else {
                 fprintf(stderr, "sonded closed the connection early\n");
             }
@@ -127,40 +142,43 @@ int read_headers(int conn_fd, FILE* out) {
     char* body_start = header_end + strlen("\r\n\r\n");
     size_t body_len = header_len - (body_start - header_buf);
 
-    fwrite(body_start, 1, body_len, out);
+    if (write_out(out, body_start, body_len) == -1) {
+        perror("write");
+        return -1;
+    }
     return 0;
 }
 
 // copy the rest of the response body to out until sonded closes, -1 on error
-int read_body(int conn_fd, FILE* out) {
+int read_body(sock_t conn_fd, struct body_out* out) {
     char response_buf[RESPONSE_BUFFER_SIZE];
     ssize_t response_len;
 
     while ((response_len = recv(conn_fd, response_buf, sizeof(response_buf), 0)) > 0) {
-        if (fwrite(response_buf, 1, response_len, out) != (size_t)response_len) {
-            perror("fwrite");
+        if (write_out(out, response_buf, response_len) == -1) {
+            perror("write");
             return -1;
         }
     }
 
     if (response_len == -1) {
-        perror("recv");
+        sock_perror("recv");
         return -1;
     }
     return 0;
 }
 
 // GET path and write the response body to out, -1 on error
-int http_get(const char* path, FILE* out) {
-    int conn_fd = send_get(path);
+int http_get(const char* path, struct body_out* out) {
+    sock_t conn_fd = send_get(path);
 
-    if (conn_fd == -1) {
+    if (conn_fd == SOCK_INVALID) {
         return -1;
     }
 
     int err = read_headers(conn_fd, out) == -1 || read_body(conn_fd, out) == -1;
 
-    close(conn_fd);
+    sock_close(conn_fd);
     return err ? -1 : 0;
 }
 
@@ -215,27 +233,39 @@ char** split_lines(char* list, size_t* count_out) {
 }
 
 int main(int argc, char** argv) {
+    (void)argc;
+
     // the song goes to stdout, which makes a mess if that's the terminal
-    if (isatty(STDOUT_FILENO)) {
+    if (isatty(fileno(stdout))) {
         fprintf(stderr, "Pipe sonde into a player, e.g.: %s | mpv -\n", argv[0]);
         return EXIT_FAILURE;
     }
 
-    // fetch the song list into memory
-    char* list = NULL;
-    size_t list_len = 0;
-    FILE* list_stream = open_memstream(&list, &list_len);
+#ifdef _WIN32
+    // stdout would otherwise turn every \n byte in the song into \r\n
+    _setmode(_fileno(stdout), _O_BINARY);
+    SetConsoleOutputCP(CP_UTF8);
+#endif
 
-    if (list_stream == NULL) {
-        perror("open_memstream");
+    if (net_init() == -1) {
+        fprintf(stderr, "Couldn't start networking\n");
         return EXIT_FAILURE;
     }
 
-    int list_err = http_get("/list.txt", list_stream);
-    fclose(list_stream);
+    // fetch the song list into memory
+    struct text list_text = {0};
+    struct body_out list_out = { .text = &list_text };
 
-    if (list_err) {
-        free(list);
+    if (http_get("/list.txt", &list_out) == -1 || list_text.failed) {
+        text_free(&list_text);
+        return EXIT_FAILURE;
+    }
+
+    // no songs means nothing was added, so give split_lines an empty string
+    char* list = list_text.data ? list_text.data : calloc(1, 1);
+
+    if (list == NULL) {
+        perror("calloc");
         return EXIT_FAILURE;
     }
 
@@ -289,7 +319,8 @@ int main(int argc, char** argv) {
 
     fprintf(stderr, "Playing %s\n", name);
 
-    int song_err = http_get(song_path, stdout);
+    struct body_out song_out = { .file = stdout };
+    int song_err = http_get(song_path, &song_out);
 
     free(names);
     free(list);

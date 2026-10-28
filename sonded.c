@@ -4,16 +4,18 @@
 #include <string.h>
 #include <strings.h>
 #include <errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
 #include <fcntl.h>
-#include <signal.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include <sys/sendfile.h>
 
+#include "platform.h"
 #include "metadata.h"
+#include "text.h"
+
+#ifndef _WIN32
+#include <signal.h>
+#include <sys/sendfile.h>
+#endif
 
 #define STREAM_PORT 8080
 
@@ -31,8 +33,45 @@ static const unsigned char index_html[] = {
 #embed "web/index.html"
 };
 
+// what a phone needs to install the web client as an app
+static const unsigned char manifest_json[] = {
+#embed "web/manifest.webmanifest"
+};
+
+static const unsigned char service_worker_js[] = {
+#embed "web/sw.js"
+};
+
+static const unsigned char icon_180_png[] = {
+#embed "web/icon-180.png"
+};
+
+static const unsigned char icon_192_png[] = {
+#embed "web/icon-192.png"
+};
+
+static const unsigned char icon_512_png[] = {
+#embed "web/icon-512.png"
+};
+
+struct static_file {
+    const char* path;
+    const char* content_type;
+    const unsigned char* data;
+    size_t len;
+};
+
+static const struct static_file static_files[] = {
+    { "/", "text/html; charset=utf-8", index_html, sizeof(index_html) },
+    { "/manifest.webmanifest", "application/manifest+json", manifest_json, sizeof(manifest_json) },
+    { "/sw.js", "text/javascript", service_worker_js, sizeof(service_worker_js) },
+    { "/apple-touch-icon.png", "image/png", icon_180_png, sizeof(icon_180_png) },
+    { "/icon-192.png", "image/png", icon_192_png, sizeof(icon_192_png) },
+    { "/icon-512.png", "image/png", icon_512_png, sizeof(icon_512_png) },
+};
+
 // keep sending until all len bytes are out, -1 on error
-int send_all(int fd, const char* buf, size_t len) {
+int send_all(sock_t fd, const char* buf, size_t len) {
     size_t sent = 0;
 
     while (sent < len) {
@@ -46,23 +85,27 @@ int send_all(int fd, const char* buf, size_t len) {
     return 0;
 }
 
-// sonded server socket, bound and listening on port. -1 on error
-int create_listen_socket(int port) {
-    int listen_fd = socket(
+// sonded server socket, bound and listening on port. SOCK_INVALID on error
+sock_t create_listen_socket(int port) {
+    sock_t listen_fd = socket(
         AF_INET, SOCK_STREAM, 0
     );
 
-    if (listen_fd == -1) {
-        perror("socket");
-        return -1;
+    if (listen_fd == SOCK_INVALID) {
+        sock_perror("socket");
+        return SOCK_INVALID;
     }
 
-    // allow restarting without waiting for the port to free up
+#ifndef _WIN32
+    // allow restarting without waiting for the port to free up. Windows
+    // already allows that, and there SO_REUSEADDR would let a second
+    // sonded steal the port instead
     int reuse_addr = 1;
     setsockopt(
         listen_fd, SOL_SOCKET, SO_REUSEADDR,
         &reuse_addr, sizeof(reuse_addr)
     );
+#endif
 
     // setup ipv4 address
     struct sockaddr_in sonded_addr = {0};
@@ -77,23 +120,23 @@ int create_listen_socket(int port) {
     );
 
     if (sock_bind_err) {
-        perror("bind");
-        close(listen_fd);
-        return -1;
+        sock_perror("bind");
+        sock_close(listen_fd);
+        return SOCK_INVALID;
     }
 
     int listen_err = listen(listen_fd, 1);
     if (listen_err) {
-        perror("listen");
-        close(listen_fd);
-        return -1;
+        sock_perror("listen");
+        sock_close(listen_fd);
+        return SOCK_INVALID;
     }
 
     return listen_fd;
 }
 
 // read the request into buf as a string, -1 on error or empty request
-int read_request(int conn_fd, char* buf, size_t buf_size) {
+int read_request(sock_t conn_fd, char* buf, size_t buf_size) {
     ssize_t request_len = recv(
         conn_fd, buf,
         buf_size - 1, 0
@@ -102,7 +145,7 @@ int read_request(int conn_fd, char* buf, size_t buf_size) {
     // -1 is an error, 0 means the client closed without sending anything
     if (request_len <= 0) {
         if (request_len == -1) {
-            perror("recv");
+            sock_perror("recv");
         }
         return -1;
     }
@@ -113,7 +156,7 @@ int read_request(int conn_fd, char* buf, size_t buf_size) {
 
 // send a full HTTP response with body, -1 on error
 int send_response(
-    int conn_fd, const char* status, const char* content_type,
+    sock_t conn_fd, const char* status, const char* content_type,
     const char* body, size_t body_len
 ) {
     char header[256];
@@ -130,14 +173,14 @@ int send_response(
 
     if (send_all(conn_fd, header, header_len) == -1 ||
         send_all(conn_fd, body, body_len) == -1) {
-        perror("send response");
+        sock_perror("send response");
         return -1;
     }
     return 0;
 }
 
 // send a plain text error like "404 Not Found"
-void send_error(int conn_fd, const char* status) {
+void send_error(sock_t conn_fd, const char* status) {
     char body[64];
     int body_len = snprintf(body, sizeof(body), "%s\n", status);
 
@@ -230,10 +273,11 @@ int list_songs(const char* dir, char*** names_out, size_t* count_out) {
         }
 
         // a folder called something.mp3 isn't a song
+        char full_path[FULL_PATH_SIZE];
         struct stat entry_stat;
 
-        if (fstatat(dirfd(music_dir), name, &entry_stat, 0) == -1 ||
-            !S_ISREG(entry_stat.st_mode)) {
+        if (snprintf(full_path, sizeof(full_path), "%s/%s", dir, name) >= (int)sizeof(full_path) ||
+            stat(full_path, &entry_stat) == -1 || !S_ISREG(entry_stat.st_mode)) {
             continue;
         }
 
@@ -271,7 +315,7 @@ int list_songs(const char* dir, char*** names_out, size_t* count_out) {
 }
 
 // send the songs in dir, one name per line
-void send_song_list(int conn_fd, const char* dir) {
+void send_song_list(sock_t conn_fd, const char* dir) {
     char** names;
     size_t count;
 
@@ -281,50 +325,46 @@ void send_song_list(int conn_fd, const char* dir) {
     }
 
     // build the body in memory so we know its Content-Length
-    char* body = NULL;
-    size_t body_len = 0;
-    FILE* body_stream = open_memstream(&body, &body_len);
-
-    if (body_stream == NULL) {
-        perror("open_memstream");
-        free_song_list(names, count);
-        send_error(conn_fd, "500 Internal Server Error");
-        return;
-    }
+    struct text body = {0};
 
     for (size_t i = 0; i < count; i++) {
-        fprintf(body_stream, "%s\n", names[i]);
+        text_puts(&body, names[i]);
+        text_putc(&body, '\n');
     }
 
-    fclose(body_stream);
     free_song_list(names, count);
 
-    send_response(conn_fd, "200 OK", "text/plain; charset=utf-8", body, body_len);
+    if (body.failed) {
+        fprintf(stderr, "song list: out of memory\n");
+        send_error(conn_fd, "500 Internal Server Error");
+    } else {
+        send_response(conn_fd, "200 OK", "text/plain; charset=utf-8", body.data ? body.data : "", body.len);
+    }
 
-    free(body);
+    text_free(&body);
 }
 
 // write str as a quoted JSON string
-void json_string(FILE* out, const char* str) {
-    fputc('"', out);
+void json_string(struct text* out, const char* str) {
+    text_putc(out, '"');
 
     for (; *str; str++) {
         unsigned char c = *str;
 
         if (c == '"' || c == '\\') {
-            fprintf(out, "\\%c", c);
+            text_printf(out, "\\%c", c);
         } else if (c < 0x20) {
-            fprintf(out, "\\u%04x", c);
+            text_printf(out, "\\u%04x", c);
         } else {
-            fputc(c, out);
+            text_putc(out, c);
         }
     }
 
-    fputc('"', out);
+    text_putc(out, '"');
 }
 
 // send every song in dir with its tags as a JSON array
-void send_song_library(int conn_fd, const char* dir) {
+void send_song_library(sock_t conn_fd, const char* dir) {
     char** names;
     size_t count;
 
@@ -333,18 +373,9 @@ void send_song_library(int conn_fd, const char* dir) {
         return;
     }
 
-    char* body = NULL;
-    size_t body_len = 0;
-    FILE* body_stream = open_memstream(&body, &body_len);
+    struct text body = {0};
 
-    if (body_stream == NULL) {
-        perror("open_memstream");
-        free_song_list(names, count);
-        send_error(conn_fd, "500 Internal Server Error");
-        return;
-    }
-
-    fputc('[', body_stream);
+    text_putc(&body, '[');
 
     for (size_t i = 0; i < count; i++) {
         char full_path[FULL_PATH_SIZE];
@@ -359,38 +390,53 @@ void send_song_library(int conn_fd, const char* dir) {
             stat(full_path, &song_stat);
         }
 
-        fputs(i ? ",\n{\"file\":" : "\n{\"file\":", body_stream);
-        json_string(body_stream, names[i]);
-        fputs(",\"title\":", body_stream);
-        json_string(body_stream, meta.title);
-        fputs(",\"artist\":", body_stream);
-        json_string(body_stream, meta.artist);
-        fputs(",\"album\":", body_stream);
-        json_string(body_stream, meta.album);
-        fputs(",\"year\":", body_stream);
-        json_string(body_stream, meta.year);
-        fputs(",\"track\":", body_stream);
-        json_string(body_stream, meta.track);
-        fprintf(
-            body_stream, ",\"size\":%lld,\"art\":%s}",
+        text_puts(&body, i ? ",\n{\"file\":" : "\n{\"file\":");
+        json_string(&body, names[i]);
+        text_puts(&body, ",\"title\":");
+        json_string(&body, meta.title);
+        text_puts(&body, ",\"artist\":");
+        json_string(&body, meta.artist);
+        text_puts(&body, ",\"album\":");
+        json_string(&body, meta.album);
+        text_puts(&body, ",\"year\":");
+        json_string(&body, meta.year);
+        text_puts(&body, ",\"track\":");
+        json_string(&body, meta.track);
+        text_printf(
+            &body, ",\"size\":%lld,\"art\":%s}",
             (long long)song_stat.st_size, meta.art_mime[0] ? "true" : "false"
         );
     }
 
-    fputs("\n]\n", body_stream);
-
-    fclose(body_stream);
+    text_puts(&body, "\n]\n");
     free_song_list(names, count);
 
-    send_response(conn_fd, "200 OK", "application/json; charset=utf-8", body, body_len);
+    if (body.failed) {
+        fprintf(stderr, "song library: out of memory\n");
+        send_error(conn_fd, "500 Internal Server Error");
+    } else {
+        send_response(conn_fd, "200 OK", "application/json; charset=utf-8", body.data, body.len);
+    }
 
-    free(body);
+    text_free(&body);
+}
+
+// strstr ignoring case, which Windows doesn't have
+const char* find_ignoring_case(const char* haystack, const char* needle) {
+    size_t needle_len = strlen(needle);
+
+    for (; *haystack; haystack++) {
+        if (strncasecmp(haystack, needle, needle_len) == 0) {
+            return haystack;
+        }
+    }
+    return NULL;
 }
 
 // find a "Range: bytes=start-end" header in request for a file of size bytes.
 // 0 = no usable range (send it all), 1 = start/end filled in, -1 = out of range
 int parse_range(const char* request, off_t size, off_t* start, off_t* end) {
-    const char* header = strcasestr(request, "\r\nRange:");
+    const char* header = find_ignoring_case(request, "\r\nRange:");
 
     if (header == NULL) {
         return 0;
@@ -460,7 +506,37 @@ int parse_range(const char* request, off_t size, off_t* start, off_t* end) {
 }
 
 // send bytes start to end (inclusive) of file_fd, -1 on error
-int send_file_range(int conn_fd, int file_fd, off_t start, off_t end) {
+int send_file_range(sock_t conn_fd, int file_fd, off_t start, off_t end) {
+#ifdef _WIN32
+    // no sendfile on Windows, so copy it through a buffer
+    char buf[64 * 1024];
+
+    if (lseek(file_fd, start, SEEK_SET) == -1) {
+        perror("lseek");
+        return -1;
+    }
+
+    off_t left = end - start + 1;
+
+    while (left > 0) {
+        int n = read(file_fd, buf, left < (off_t)sizeof(buf) ? (unsigned)left : sizeof(buf));
+
+        // 0 means the file got shorter while sending
+        if (n <= 0) {
+            if (n == -1) {
+                perror("read");
+            }
+            return -1;
+        }
+
+        if (send_all(conn_fd, buf, n) == -1) {
+            sock_perror("send"); // usually the client disconnected
+            return -1;
+        }
+        left -= n;
+    }
+    return 0;
+#else
     // sendfile can send less than asked, so loop until the whole range is out
     off_t offset = start;
 
@@ -479,12 +555,13 @@ int send_file_range(int conn_fd, int file_fd, off_t start, off_t end) {
         }
     }
     return 0;
+#endif
 }
 
 // send the song at path as the response body, or an error response.
 // honours a Range header in request so players can seek. -1 on error
-int send_song(int conn_fd, const char* path, const char* content_type, const char* request) {
-    int song_fd = open(path, O_RDONLY);
+int send_song(sock_t conn_fd, const char* path, const char* content_type, const char* request) {
+    int song_fd = open(path, O_RDONLY | O_BINARY);
 
     if (song_fd == -1) {
         if (errno == ENOENT) {
@@ -553,7 +630,7 @@ int send_song(int conn_fd, const char* path, const char* content_type, const cha
     }
 
     if (send_all(conn_fd, header, header_len) == -1) {
-        perror("send header");
+        sock_perror("send header");
         close(song_fd);
         return -1;
     }
@@ -566,10 +643,10 @@ int send_song(int conn_fd, const char* path, const char* content_type, const cha
 
 // decode and check a song name from the URL, then build its full path.
 // returns its Content-Type, or NULL after sending an error response
-const char* resolve_song(int conn_fd, const char* music_dir, char* name, char* full_path, size_t size) {
+const char* resolve_song(sock_t conn_fd, const char* music_dir, char* name, char* full_path, size_t size) {
     // reject anything that could reach outside music_dir: slashes, "..", hidden files
     if (url_decode(name) == -1 || name[0] == '\0' ||
-        name[0] == '.' || strchr(name, '/')) {
+        name[0] == '.' || strpbrk(name, PATH_FORBIDDEN)) {
         send_error(conn_fd, "404 Not Found");
         return NULL;
     }
@@ -592,7 +669,7 @@ const char* resolve_song(int conn_fd, const char* music_dir, char* name, char* f
 }
 
 // serve the song named by the part of the URL after /songs/
-void handle_song_request(int conn_fd, const char* music_dir, char* name, const char* request) {
+void handle_song_request(sock_t conn_fd, const char* music_dir, char* name, const char* request) {
     char full_path[FULL_PATH_SIZE];
     const char* content_type = resolve_song(conn_fd, music_dir, name, full_path, sizeof(full_path));
 
@@ -602,7 +679,7 @@ void handle_song_request(int conn_fd, const char* music_dir, char* name, const c
 }
 
 // serve the cover image inside the song named by the part of the URL after /art/
-void handle_art_request(int conn_fd, const char* music_dir, char* name) {
+void handle_art_request(sock_t conn_fd, const char* music_dir, char* name) {
     char full_path[FULL_PATH_SIZE];
 
     if (resolve_song(conn_fd, music_dir, name, full_path, sizeof(full_path)) == NULL) {
@@ -616,7 +693,7 @@ void handle_art_request(int conn_fd, const char* music_dir, char* name) {
         return;
     }
 
-    int song_fd = open(full_path, O_RDONLY);
+    int song_fd = open(full_path, O_RDONLY | O_BINARY);
 
     if (song_fd == -1) {
         send_error(conn_fd, "404 Not Found");
@@ -638,7 +715,7 @@ void handle_art_request(int conn_fd, const char* music_dir, char* name) {
     );
 
     if (send_all(conn_fd, header, header_len) == -1) {
-        perror("send header");
+        sock_perror("send header");
     } else {
         send_file_range(conn_fd, song_fd, meta.art_offset, meta.art_offset + meta.art_len - 1);
     }
@@ -646,12 +723,22 @@ void handle_art_request(int conn_fd, const char* music_dir, char* name) {
     close(song_fd);
 }
 
+// one of the files baked into the binary, NULL if path isn't one
+const struct static_file* find_static_file(const char* path) {
+    for (size_t i = 0; i < sizeof(static_files) / sizeof(static_files[0]); i++) {
+        if (strcmp(path, static_files[i].path) == 0) {
+            return &static_files[i];
+        }
+    }
+    return NULL;
+}
+
 // serve one sonde client connection, then close it
-void handle_client(int conn_fd, const char* music_dir) {
+void handle_client(sock_t conn_fd, const char* music_dir) {
     char request_buf[REQUEST_BUFFER_SIZE];
 
     if (read_request(conn_fd, request_buf, sizeof(request_buf)) == -1) {
-        close(conn_fd);
+        sock_close(conn_fd);
         return;
     }
 
@@ -661,7 +748,7 @@ void handle_client(int conn_fd, const char* music_dir) {
 
     if (sscanf(request_buf, "%7s %511s", method, path) != 2) {
         send_error(conn_fd, "400 Bad Request");
-        close(conn_fd);
+        sock_close(conn_fd);
         return;
     }
 
@@ -669,7 +756,7 @@ void handle_client(int conn_fd, const char* music_dir) {
 
     if (strcmp(method, "GET") != 0) {
         send_error(conn_fd, "405 Method Not Allowed");
-        close(conn_fd);
+        sock_close(conn_fd);
         return;
     }
 
@@ -679,10 +766,12 @@ void handle_client(int conn_fd, const char* music_dir) {
         *query = '\0';
     }
 
-    if (strcmp(path, "/") == 0) {
+    const struct static_file* file = find_static_file(path);
+
+    if (file) {
         send_response(
-            conn_fd, "200 OK", "text/html; charset=utf-8",
-            (const char*)index_html, sizeof(index_html)
+            conn_fd, "200 OK", file->content_type,
+            (const char*)file->data, file->len
         );
     } else if (strcmp(path, "/list.txt") == 0) {
         send_song_list(conn_fd, music_dir);
@@ -696,7 +785,67 @@ void handle_client(int conn_fd, const char* music_dir) {
         send_error(conn_fd, "404 Not Found");
     }
 
-    close(conn_fd);
+    sock_close(conn_fd);
+}
+
+#ifdef _WIN32
+// Windows has no fork, so each client gets a thread instead
+struct client {
+    sock_t conn_fd;
+    const char* music_dir;
+};
+
+DWORD WINAPI client_thread(LPVOID arg) {
+    struct client* client = arg;
+
+    handle_client(client->conn_fd, client->music_dir);
+    free(client);
+    return 0;
+}
+#endif
+
+// serve conn_fd alongside everyone else, so a browser holding a song
+// stream open doesn't block other clients. closes conn_fd either way
+void start_client(sock_t listen_fd, sock_t conn_fd, const char* music_dir) {
+#ifdef _WIN32
+    (void)listen_fd;
+    struct client* client = malloc(sizeof(*client));
+
+    if (client == NULL) {
+        perror("malloc");
+        sock_close(conn_fd);
+        return;
+    }
+    client->conn_fd = conn_fd;
+    client->music_dir = music_dir;
+
+    HANDLE thread = CreateThread(NULL, 0, client_thread, client, 0, NULL);
+
+    if (thread == NULL) {
+        fprintf(stderr, "CreateThread failed: error %lu\n", GetLastError());
+        free(client);
+        sock_close(conn_fd);
+        return;
+    }
+    CloseHandle(thread); // it runs on without us waiting for it
+#else
+    // one process per client
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        perror("fork");
+        sock_close(conn_fd);
+        return;
+    }
+
+    if (pid == 0) {
+        sock_close(listen_fd);
+        handle_client(conn_fd, music_dir);
+        _exit(EXIT_SUCCESS);
+    }
+
+    sock_close(conn_fd);
+#endif
 }
 
 int main(int argc, char** argv) {
@@ -705,7 +854,16 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    const char* music_dir = argv[1];
+    char* music_dir = argv[1];
+
+    // a trailing separator would double up when joined with a song name,
+    // and Windows can't stat "C:\\Music\\" at all. keep a lone "/" or "C:\\"
+    size_t dir_len = strlen(music_dir);
+
+    while (dir_len > 1 && strchr("/\\", music_dir[dir_len - 1]) && music_dir[dir_len - 2] != ':') {
+        music_dir[--dir_len] = '\0';
+    }
+
     struct stat music_dir_stat;
 
     if (stat(music_dir, &music_dir_stat) == -1) {
@@ -718,6 +876,13 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+#ifdef _WIN32
+    // song names are UTF-8, show them right in the console
+    SetConsoleOutputCP(CP_UTF8);
+
+    // Windows treats line buffering as full buffering, so don't buffer at all
+    setvbuf(stdout, NULL, _IONBF, 0);
+#else
     signal(SIGPIPE, SIG_IGN);
 
     // finished client processes clean themselves up instead of becoming zombies
@@ -725,10 +890,16 @@ int main(int argc, char** argv) {
 
     // print each request line straight away, even when logging to a file
     setvbuf(stdout, NULL, _IOLBF, 0);
+#endif
 
-    int listen_fd = create_listen_socket(STREAM_PORT);
+    if (net_init() == -1) {
+        fprintf(stderr, "Couldn't start networking\n");
+        return EXIT_FAILURE;
+    }
 
-    if (listen_fd == -1) {
+    sock_t listen_fd = create_listen_socket(STREAM_PORT);
+
+    if (listen_fd == SOCK_INVALID) {
         return EXIT_FAILURE;
     }
 
@@ -736,31 +907,15 @@ int main(int argc, char** argv) {
 
     while (1) {
         // sonde client socket
-        int conn_fd = accept(listen_fd, NULL, NULL);
-        if (conn_fd == -1) {
-            perror("accept");
+        sock_t conn_fd = accept(listen_fd, NULL, NULL);
+        if (conn_fd == SOCK_INVALID) {
+            sock_perror("accept");
             continue;
         }
 
-        // one process per client, so a browser holding a song stream open
-        // doesn't block everyone else
-        pid_t pid = fork();
-
-        if (pid == -1) {
-            perror("fork");
-            close(conn_fd);
-            continue;
-        }
-
-        if (pid == 0) {
-            close(listen_fd);
-            handle_client(conn_fd, music_dir);
-            _exit(EXIT_SUCCESS);
-        }
-
-        close(conn_fd);
+        start_client(listen_fd, conn_fd, music_dir);
     }
-    close(listen_fd);
+    sock_close(listen_fd);
 
     return EXIT_SUCCESS;
 }

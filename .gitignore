@@ -2,3 +2,5 @@
 sonde
 sonded
 *.o
+*.exe
+windows/*.res

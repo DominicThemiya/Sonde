@@ -6,7 +6,10 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sonde">
 <title>Sonde</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M0 0h26l6 6v26H6l-6-6z' fill='%23000'/%3E%3Cpath d='M8 21v-8M13 24V8M18 21v-8M23 18v-2' stroke='%237df9e4' stroke-width='2.5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -190,6 +193,14 @@
   }
 
   .deck-close { display: none; }
+
+  .deck-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 10px var(--chamfer);
+  }
 
   /* spec line above the cover: what's loaded, in numbers */
   .spec {
@@ -437,9 +448,26 @@
   .tick.near { stroke: var(--vfd-dim); }
   .tick.lit { stroke: var(--vfd); filter: drop-shadow(0 0 2px var(--vfd)); }
 
+  /* folds the dial away. the row shrinks to nothing a frame at a time, so
+     on phones the cover grows smoothly into the space it leaves */
+  .dial-drawer {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.34s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.24s;
+  }
+
+  .deck.no-dial .dial-drawer {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+
   .dial-unit {
+    width: 100%;
     max-width: 260px;
-    margin: 18px auto 0;
+    min-height: 0;
+    margin: 0 auto;
+    padding-top: 18px;
+    overflow: hidden;
   }
 
   /* a full knob, cut in half by the container: only the top half shows */
@@ -523,6 +551,16 @@
   }
 
   .key-small[aria-pressed="true"] { color: var(--text); }
+
+  .dial-toggle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 30px;
+    padding: 0 22px 0 11px;
+  }
+
+  .dial-toggle .lamp { top: calc(50% - 3px); right: 8px; }
 
   /* library wheel: phones only, see the media query below */
   .wheel, .wheel-readout { display: none; }
@@ -792,21 +830,50 @@
       transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
+    /* everything fits on one screen: the cover takes whatever height the
+       rest leaves over, and stays square inside that space */
     .deck-inner {
+      display: flex;
+      flex-direction: column;
       max-width: 420px;
+      min-height: 100%;
       margin: 0 auto;
       padding: 0;
       clip-path: none;
     }
 
     .spec { margin-left: 0; }
+    .deck-top { margin: -4px 0 6px; }
+
+    .cover-slot {
+      flex: 1 1 0;
+      min-height: 110px;
+      display: grid;
+      place-items: center;
+      container-type: size;
+    }
+
+    .cover { width: min(100cqw, 100cqh); }
+
+    /* without the dial there's height to spare, so the cover runs out to
+       the screen edges */
+    .cover-slot { transition: margin 0.34s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .deck.no-dial .cover-slot { margin: 0 -20px; }
+    .deck.no-dial .cover { border-left: 0; border-right: 0; }
+
+    .deck-inner .vfd { margin-top: 12px; padding: 10px 12px 9px; }
+    .deck-inner .vfd-title { font-size: 19px; }
+    .deck-inner .vfd-time { margin-top: 8px; }
+    .deck-inner .keys { margin-top: 12px; }
+    .dial-unit { max-width: 250px; padding-top: 10px; }
+    .dial-modes { margin-top: 8px; }
+    .deck-inner .status { margin-top: 12px; }
 
     .deck-close {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin: 0 0 16px auto;
-      padding: 8px 4px;
+      padding: 6px 4px;
       color: var(--muted);
       font-size: 14px;
     }
@@ -854,11 +921,35 @@
     /* keep rows clear of the wheel on the right edge */
     .table-head, .songs, .message { margin-right: 72px; }
 
-    .song.cursor {
-      outline: 1px solid var(--vfd);
-      outline-offset: -1px;
-      background: rgb(125 249 228 / 0.06);
+    /* the list works like a drum: the row on the focus line pops out
+       towards the wheel and the rest shrink and fade with distance. script
+       sets --near (0..1, falls off over a few rows) and --pop (just the
+       focused row) every frame from the scroll position */
+    .songs.drum .song {
+      --near: 0;
+      --pop: 0;
+      transform-origin: 0 50%;
+      transform:
+        translateX(calc(var(--pop) * 8px))
+        scale(calc(0.86 + var(--near) * 0.12 + var(--pop) * 0.06));
+      opacity: calc(0.32 + var(--near) * 0.68);
+      will-change: transform, opacity;
     }
+
+    .songs.drum .song:hover { background: none; }
+
+    .songs.drum .song::after {
+      content: "";
+      position: absolute;
+      inset: 0 -6px 0 -6px;
+      border: 1px solid var(--vfd);
+      background: rgb(125 249 228 / 0.06);
+      box-shadow: 0 0 22px rgb(125 249 228 / 0.18), inset 0 0 14px rgb(125 249 228 / 0.08);
+      opacity: var(--pop);
+      pointer-events: none;
+    }
+
+    .songs.drum .song .song-name { text-shadow: 0 0 calc(var(--pop) * 8px) rgb(125 249 228 / 0.5); }
 
     /* half a wheel sticking out of the right edge, above the deck bar */
     .wheel {
@@ -931,6 +1022,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .dial-drawer { transition: none; }
+    .cover-slot { transition: none; }
     .deck, .deck.open { transition: none; }
     .key { transition: none; }
     .knob.settling { transition: none; }
@@ -962,17 +1055,24 @@
 <div class="console">
   <section class="deck" id="deck" aria-label="Now playing">
     <div class="deck-inner">
-      <button class="deck-close" id="deck-close" type="button">
-        Back to library
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
+      <div class="deck-top">
+        <button class="key key-small dial-toggle" id="dial-toggle" type="button" aria-pressed="true" aria-controls="dial-drawer" title="Show or hide the dial">
+          <span class="lamp"></span>
+          <svg width="16" height="9" viewBox="0 0 16 9" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 8.5a7 7 0 0 1 14 0"/><path d="M8 8.5V3"/></svg>
+          Dial
+        </button>
+        <button class="deck-close" id="deck-close" type="button">
+          Back to library
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </div>
 
       <div class="spec micro">
         <span>Now playing</span>
         <span class="spec-values" id="spec"></span>
       </div>
 
-      <div class="cover" id="cover"></div>
+      <div class="cover-slot"><div class="cover" id="cover"></div></div>
 
       <div class="vfd">
         <div class="vfd-title" id="title">Ready</div>
@@ -1007,6 +1107,7 @@
         </button>
       </div>
 
+      <div class="dial-drawer" id="dial-drawer">
       <div class="dial-unit">
         <div class="dial" id="dial" tabindex="0" role="slider" aria-label="Seek dial" aria-valuetext="Turn to seek">
           <svg class="dial-scale" id="dial-scale" viewBox="0 0 200 100" aria-hidden="true"></svg>
@@ -1028,6 +1129,7 @@
             <span class="lamp"></span>Clicks
           </button>
         </div>
+      </div>
       </div>
 
       <dl class="status">
@@ -1353,12 +1455,7 @@ function playSong(i) {
   showNowPlaying(song);
   updateStatus();
 
-  // the library wheel follows whatever starts playing, unless it's in your hand
-  const position = visible.indexOf(i);
-  if (position >= 0 && !wheel.busy) {
-    setCursor(position, { scroll: false });
-    wheel.setValue(-position * WHEEL_DETENT, true);
-  }
+  wheelToSong(i);
 
   if (dialMode === "seek" && !deckDial.busy) {
     dialReadout("Seek");
@@ -1568,7 +1665,7 @@ const clicks = {
       try {
         this.ctx = new (window.AudioContext || window.webkitAudioContext)();
         this.out = this.ctx.createGain();
-        this.out.gain.value = 0.6;
+        this.out.gain.value = 0.9;
         this.out.connect(this.ctx.destination);
       } catch {
         return null;
@@ -1609,29 +1706,29 @@ const clicks = {
       return;
     }
     this.lastTick = now;
-    this.blip(2300 * pitch, 1400 * pitch, 0.03, "triangle", 0.05);
+    this.blip(2300 * pitch, 1400 * pitch, 0.03, "triangle", 0.085);
     this.tap(6);
   },
 
   grab() {
-    this.blip(210, 110, 0.07, "sine", 0.1);
+    this.blip(210, 110, 0.07, "sine", 0.16);
     this.tap(10);
   },
 
   settle() {
-    this.blip(150, 90, 0.06, "sine", 0.05);
+    this.blip(150, 90, 0.06, "sine", 0.09);
   },
 
   // hit an end stop
   bump() {
-    this.blip(95, 50, 0.12, "sine", 0.16);
-    this.blip(900, 600, 0.03, "triangle", 0.03);
+    this.blip(95, 50, 0.12, "sine", 0.22);
+    this.blip(900, 600, 0.03, "triangle", 0.055);
     this.tap(22);
   },
 
   confirm() {
-    this.blip(660, 990, 0.09, "sine", 0.06);
-    this.blip(990, 1320, 0.08, "sine", 0.04, 0.06);
+    this.blip(660, 990, 0.09, "sine", 0.1);
+    this.blip(990, 1320, 0.08, "sine", 0.07, 0.06);
     this.tap(14);
   },
 
@@ -1697,7 +1794,9 @@ class Dial {
     this.pointer = null;
     this.frame = 0;
     this.coasting = false;
+    this.gliding = false;
     this.overLimit = false;
+    this.visual = 0;     // the angle last drawn, rubber band stretch included
 
     el.addEventListener("pointerdown", (e) => this.grab(e));
     el.addEventListener("pointermove", (e) => this.drag(e));
@@ -1729,6 +1828,12 @@ class Dial {
     }
 
     cancelAnimationFrame(this.frame);
+    if (this.gliding) {
+      // caught mid-glide: pick it up where it is drawn, not where it was headed
+      this.gliding = false;
+      this.value = Math.min(this.max, Math.max(this.min, this.visual));
+      this.detentIndex = Math.round(this.value / this.detent);
+    }
     try {
       // keep getting moves even when the finger slides off the dial
       this.el.setPointerCapture(e.pointerId);
@@ -1827,21 +1932,58 @@ class Dial {
     this.frame = requestAnimationFrame(step);
   }
 
-  // spring back from past an end and click into the nearest detent
+  // spring back from past an end and click into the nearest detent.
+  // with the glide option it eases there instead, drawing every frame so
+  // whatever follows the dial moves smoothly too
   settle() {
     cancelAnimationFrame(this.frame);
     this.coasting = false;
-    this.value = this.detentIndex * this.detent;
-    this.raw = this.value;
     this.velocity = 0;
     this.overLimit = false;
+
+    if (this.o.glide) {
+      this.glideTo(this.detentIndex * this.detent, () => this.o.onSettle?.());
+      return;
+    }
+    this.value = this.raw = this.detentIndex * this.detent;
     this.knob.classList.add("settling");
     this.render(this.value);
     this.o.onSettle?.();
   }
 
-  setValue(value, animate) {
+  glideTo(target, done) {
     cancelAnimationFrame(this.frame);
+    const from = this.visual;
+    const start = performance.now();
+    const length = Math.min(520, 220 + Math.abs(target - from) * 2);
+
+    this.value = this.raw = target;
+    this.detentIndex = Math.round(target / this.detent);
+    this.gliding = true;
+    this.knob.classList.remove("settling");
+
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / length);
+      const eased = 1 - Math.pow(1 - t, 3);
+      this.render(from + (target - from) * eased);
+
+      if (t < 1) {
+        this.frame = requestAnimationFrame(step);
+      } else {
+        this.gliding = false;
+        done?.();
+      }
+    };
+    this.frame = requestAnimationFrame(step);
+  }
+
+  setValue(value, animate) {
+    if (animate && this.o.glide) {
+      this.glideTo(value);
+      return;
+    }
+    cancelAnimationFrame(this.frame);
+    this.gliding = false;
     this.value = this.raw = value;
     this.detentIndex = Math.round(value / this.detent);
     this.knob.classList.toggle("settling", animate);
@@ -1849,6 +1991,7 @@ class Dial {
   }
 
   render(visual) {
+    this.visual = visual;
     this.knob.style.setProperty("--angle", `${visual + (this.o.offset || 0)}deg`);
     this.o.onRender?.(visual);
   }
@@ -2019,6 +2162,19 @@ $("clicks").addEventListener("click", () => {
   clicks.confirm();
 });
 
+function setDialShown(shown) {
+  $("deck").classList.toggle("no-dial", !shown);
+  $("dial-toggle").setAttribute("aria-pressed", shown);
+  // nothing in a folded drawer should take focus
+  $("dial-drawer").inert = !shown;
+  saveSetting("sonde-dial", shown ? "shown" : "hidden");
+}
+
+$("dial-toggle").addEventListener("click", () => {
+  setDialShown($("deck").classList.contains("no-dial"));
+  clicks.confirm();
+});
+
 // arrow keys turn the dial one step for keyboard users
 $("dial").addEventListener("keydown", (event) => {
   const direction = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[event.key];
@@ -2041,38 +2197,134 @@ $("dial").addEventListener("keydown", (event) => {
   }
 });
 
-// ---------- library wheel (phones) ----------
+// ---------- library wheel and drum list (phones) ----------
+
+// the page's scroll position is the one source of truth: turning the wheel
+// scrolls the page, scrolling with a finger turns the wheel, and whichever
+// row sits on the focus line pops out
 
 const WHEEL_DETENT = 15;
+const phone = matchMedia("(max-width: 959px)");
 let visible = [];         // indices of the songs the search lets through
-let cursor = 0;           // position in visible of the highlighted song
+let centres = [];         // page y of the middle of each visible row
+let focusLine = 0;        // how far down the window the focused row sits
+let cursor = -1;          // the visible row nearest the focus line
+let drawn = new Set();    // rows drawDrum has styled
+let followingScroll = false;
+let lastFingerScroll = -Infinity;
 let wheelHideTimer = 0;
 
 const wheelTicks = drawScale($("wheel-scale"), {
   cx: 84, cy: 84, inner: 79, outer: 83, from: 95, to: 265, step: 10, major: 30,
 });
 
-function setCursor(position, { feedback = false, scroll = true } = {}) {
-  if (!visible.length) {
+// where each row is, measured from layout so the drum's scaling doesn't
+// count. also pads the list so the last row can reach the focus line
+function measureRows() {
+  const list = $("songs");
+  list.style.paddingBottom = "";
+  list.classList.toggle("drum", phone.matches);
+  centres = [];
+
+  if (!phone.matches || !visible.length) {
     return;
   }
-  songs[visible[cursor]]?.row.classList.remove("cursor");
-  cursor = Math.min(visible.length - 1, Math.max(0, position));
 
-  const song = songs[visible[cursor]];
-  song.row.classList.add("cursor");
-  if (scroll) {
-    song.row.scrollIntoView({ block: "center", behavior: "instant" });
+  const listTop = list.getBoundingClientRect().top + scrollY;
+  centres = visible.map((i) => {
+    const li = songs[i].row.parentElement;
+    return listTop + li.offsetTop - list.offsetTop + li.offsetHeight / 2;
+  });
+
+  // a bit above the middle of what the deck bar leaves, but never lower
+  // than the first row already is, or it could never be focused
+  const bottom = innerHeight - $("minideck").offsetHeight;
+  focusLine = Math.min(bottom * 0.45, centres[0]);
+
+  const short = centres.at(-1) - focusLine + innerHeight - document.documentElement.scrollHeight;
+  if (short > 0) {
+    list.style.paddingBottom = `${Math.ceil(short)}px`;
+  }
+}
+
+// page y on the focus line to a fractional row, and back
+function rowAt(y) {
+  const last = centres.length - 1;
+  if (y <= centres[0]) {
+    return 0;
+  }
+  if (y >= centres[last]) {
+    return last;
+  }
+  let lo = 0;
+  let hi = last;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (centres[mid] <= y) {
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+  return lo + (y - centres[lo]) / (centres[hi] - centres[lo]);
+}
+
+function centreOf(row) {
+  const i = Math.floor(row);
+  if (i >= centres.length - 1) {
+    return centres.at(-1);
+  }
+  return centres[i] + (centres[i + 1] - centres[i]) * (row - i);
+}
+
+// size every row near the focus by how far it is from it, in rows
+function drawDrum(row) {
+  const near = new Set();
+  const first = Math.max(0, Math.floor(row) - 5);
+  const last = Math.min(visible.length - 1, Math.ceil(row) + 5);
+
+  for (let k = first; k <= last; k++) {
+    const el = songs[visible[k]].row;
+    const distance = Math.abs(k - row);
+    const pop = Math.max(0, 1 - distance / 0.8);
+
+    el.style.setProperty("--near", (1 / (1 + 1.4 * distance * distance)).toFixed(3));
+    el.style.setProperty("--pop", (pop * pop * (3 - 2 * pop)).toFixed(3));
+    near.add(el);
   }
 
+  for (const el of drawn) {
+    if (!near.has(el)) {
+      el.style.removeProperty("--near");
+      el.style.removeProperty("--pop");
+    }
+  }
+  drawn = near;
+  setCursor(Math.round(row));
+}
+
+function scrollToRow(row) {
+  const clamped = Math.min(visible.length - 1, Math.max(0, row));
+  window.scrollTo({ top: centreOf(clamped) - focusLine, behavior: "instant" });
+  drawDrum(clamped);
+}
+
+function setCursor(position) {
+  position = Math.min(visible.length - 1, Math.max(0, position));
+  if (position === cursor || !visible.length) {
+    return;
+  }
+  cursor = position;
+
+  const song = songs[visible[cursor]];
   $("wheel-count").textContent = `${String(cursor + 1).padStart(3, "0")} of ${String(visible.length).padStart(3, "0")}`;
   $("wheel-title").textContent = song.title;
   $("wheel").setAttribute("aria-valuetext", `${song.title}, ${cursor + 1} of ${visible.length}`);
+}
 
-  if (feedback) {
-    // pitch climbs as you go down the list
-    clicks.tick(0.75 + (cursor / Math.max(1, visible.length - 1)) * 0.6);
-  }
+function wheelClick(position) {
+  // pitch climbs as you go down the list
+  clicks.tick(0.75 + (position / Math.max(1, visible.length - 1)) * 0.6);
 }
 
 function showWheelReadout() {
@@ -2085,16 +2337,26 @@ function hideWheelReadoutSoon() {
   wheelHideTimer = setTimeout(() => $("wheel-readout").classList.remove("show"), 1100);
 }
 
+// turn the wheel to match the page without scrolling it again
+function followScroll() {
+  if (!centres.length) {
+    return;
+  }
+  const row = rowAt(scrollY + focusLine);
+  drawDrum(row);
+  followingScroll = true;
+  wheel.setValue(-row * WHEEL_DETENT, false);
+  followingScroll = false;
+}
+
 // keep the wheel's list in step with the search box
 function refreshVisible() {
-  for (const song of songs) {
-    song.row.classList.remove("cursor");
-  }
   visible = songs.map((_, i) => i).filter((i) => !songs[i].row.parentElement.hidden);
-  cursor = 0;
+  cursor = -1;
+  measureRows();
   wheel.setValue(0, false);
-  if (visible.length) {
-    setCursor(0, { scroll: false });
+  if (!centres.length) {
+    setCursor(0);
   }
 }
 
@@ -2106,6 +2368,7 @@ const wheel = new Dial($("wheel"), $("wheel-knob"), {
   max: () => 0,
   offset: -90,
   friction: 0.996,
+  glide: true,
   enabled: () => visible.length > 0,
 
   onRefuse() {
@@ -2118,7 +2381,7 @@ const wheel = new Dial($("wheel"), $("wheel-knob"), {
   },
 
   onDetent(steps, index) {
-    setCursor(-index, { feedback: true });
+    wheelClick(-index);
   },
 
   onLimit() {
@@ -2132,8 +2395,41 @@ const wheel = new Dial($("wheel"), $("wheel-knob"), {
 
   onRender(visual) {
     lightPointer(wheelTicks, visual + 180, 10);
+    if (!followingScroll && centres.length) {
+      scrollToRow(-visual / WHEEL_DETENT);
+    }
   },
 });
+
+addEventListener("scroll", () => {
+  // scrolls the wheel caused itself are already drawn
+  if (wheel.busy || wheel.gliding) {
+    return;
+  }
+  lastFingerScroll = performance.now();
+  followScroll();
+}, { passive: true });
+
+let resizeFrame = 0;
+addEventListener("resize", () => {
+  cancelAnimationFrame(resizeFrame);
+  resizeFrame = requestAnimationFrame(() => {
+    measureRows();
+    followScroll();
+  });
+});
+document.fonts?.ready.then(() => {
+  measureRows();
+  followScroll();
+});
+
+// the wheel follows whatever starts playing, unless you're using the list
+function wheelToSong(i) {
+  const position = visible.indexOf(i);
+  if (position >= 0 && !wheel.busy && performance.now() - lastFingerScroll > 1200) {
+    wheel.setValue(-position * WHEEL_DETENT, true);
+  }
+}
 
 $("wheel-hub").addEventListener("click", () => {
   if (visible.length) {
@@ -2145,10 +2441,11 @@ $("wheel-hub").addEventListener("click", () => {
 $("wheel").addEventListener("keydown", (event) => {
   const direction = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];
 
-  if (direction) {
+  if (direction && visible.length) {
     event.preventDefault();
-    setCursor(cursor + direction, { feedback: true });
-    wheel.setValue(-cursor * WHEEL_DETENT, true);
+    const position = Math.min(visible.length - 1, Math.max(0, cursor + direction));
+    wheelClick(position);
+    wheel.setValue(-position * WHEEL_DETENT, true);
   } else if (event.key === "Enter" && visible.length) {
     event.preventDefault();
     clicks.confirm();
@@ -2186,12 +2483,19 @@ if (volumeWorks) {
 }
 $("clicks").setAttribute("aria-pressed", clicks.on);
 deckDial.setValue(0, false);
+setDialShown(loadSetting("sonde-dial", "shown") === "shown");
 wheel.setValue(0, false);
 
 $("stat-address").textContent = location.host;
 $("cover").append(coverElement(null));
 $("mini-cover").append(coverElement(null));
 loadSongs();
+
+// lets the browser offer to install Sonde as an app. only allowed over
+// https or on localhost, so on plain http over wifi this quietly does nothing
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+}
 </script>
 </body>
 </html>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- full bleed black so Android can mask it to any shape; everything
+       that matters sits inside the middle 80% safe zone -->
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="#000"/>
+  <!-- chamfered plate, the deck's outline -->
+  <path d="M148 120h244v232l-40 40H120V148z" fill="#04110f" stroke="#444" stroke-width="4"/>
+  <!-- signal bars in the VFD colour -->
+  <g stroke="#7df9e4" stroke-width="22" stroke-linecap="square">
+    <g filter="url(#glow)" opacity="0.7">
+      <path d="M188 304v-72M234 336V176M280 304v-72M326 280v-24"/>
+    </g>
+    <path d="M188 304v-72M234 336V176M280 304v-72M326 280v-24"/>
+  </g>
+  <!-- amber lamp in the corner, like the keys -->
+  <rect x="352" y="140" width="16" height="16" fill="#ff8a3d"/>
+</svg>

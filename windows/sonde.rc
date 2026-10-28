@@ -1,0 +1,3 @@
+// built into sonded.exe and sonde.exe: the app icon and the manifest
+1 ICON "windows/sonde.ico"
+1 24 "windows/sonde.manifest"
