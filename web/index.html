@@ -14,6 +14,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&family=Michroma&display=swap">
+<script>
+  // put the chosen skin on before anything is drawn, so it never flashes aqua
+  try {
+    const skin = localStorage.getItem("sonde-skin");
+    if (skin && skin !== "aqua") {
+      document.documentElement.dataset.skin = skin;
+    }
+  } catch {
+    // no storage, default skin
+  }
+</script>
 <style>
   :root {
     /* the room: plain black with neutral grey hairlines */
@@ -25,13 +36,29 @@
     --muted: #8f8f8f;
     --faint: #7a7a7a;
 
-    /* the deck hardware */
-    --key-edge: #33406a;
-    --vfd: #7df9e4;
+    /* the deck hardware. a skin swaps all of these: the display tube,
+       the indicator lamps, and the keys and knobs around them */
+    --vfd-rgb: 125 249 228;
+    --vfd: rgb(var(--vfd-rgb));
+    --vfd-bright: var(--vfd-bright);
     --vfd-dim: #1d4a44;
     --glass: #04110f;
-    --led: #ff8a3d;
+    --glass-edge: #0d2420;
+    --led-rgb: 255 138 61;
+    --led: rgb(var(--led-rgb));
     --led-off: #4a3326;
+    --key-top: #2a3456;
+    --key-bottom: #1f2844;
+    --key-hover-top: #303b62;
+    --key-hover-bottom: #232d4c;
+    --key-edge: #33406a;
+    --key-shadow: var(--key-shadow);
+    --knob-face: #1a2036;
+    --knob-rim: #0c0f1c;
+    --knob-ridge: #3a4672;
+    --knob-groove: #151a2c;
+    --dimple-dark: #0b0e19;
+    --dimple-light: #222a45;
 
     --deck-width: 360px;
     --chamfer: 18px;
@@ -39,6 +66,75 @@
     --body-font: "Chakra Petch", "Bahnschrift", "DIN Alternate", "Segoe UI", system-ui, sans-serif;
     --mark-font: "Michroma", "Eurostile", "Bank Gothic", var(--body-font);
     color-scheme: dark;
+  }
+
+  /* amber gas plasma, like an old laptop screen, on smoked bronze keys */
+  :root[data-skin="amber"] {
+    --vfd-rgb: 255 166 54;
+    --vfd-bright: #fff3e0;
+    --vfd-dim: #4d3210;
+    --glass: #110902;
+    --glass-edge: #2a1806;
+    --led-rgb: 255 76 60;
+    --led-off: #4a1e1a;
+    --key-top: #3a3129;
+    --key-bottom: #2b241e;
+    --key-hover-top: #443a30;
+    --key-hover-bottom: #312922;
+    --key-edge: #574a3c;
+    --key-shadow: #100c08;
+    --knob-face: #26201b;
+    --knob-rim: #120e0b;
+    --knob-ridge: #5c4e40;
+    --knob-groove: #1d1814;
+    --dimple-dark: #0f0c09;
+    --dimple-light: #2f2822;
+  }
+
+  /* green phosphor CRT on olive drab keys, like test gear */
+  :root[data-skin="green"] {
+    --vfd-rgb: 102 255 140;
+    --vfd-bright: #e8ffec;
+    --vfd-dim: #1a4a28;
+    --glass: #020e05;
+    --glass-edge: #0a2410;
+    --led-rgb: 255 200 64;
+    --led-off: #4a3c1a;
+    --key-top: #2f3a2b;
+    --key-bottom: #232b20;
+    --key-hover-top: #37452f;
+    --key-hover-bottom: #283224;
+    --key-edge: #46583f;
+    --key-shadow: #0a0f08;
+    --knob-face: #1c241a;
+    --knob-rim: #0c100a;
+    --knob-ridge: #4b5d44;
+    --knob-groove: #161d14;
+    --dimple-dark: #0a0d08;
+    --dimple-light: #283325;
+  }
+
+  /* red LED segments on black anodised keys, like a 1980s hi-fi */
+  :root[data-skin="red"] {
+    --vfd-rgb: 255 76 76;
+    --vfd-bright: #ffe4e1;
+    --vfd-dim: #4d1717;
+    --glass: #110303;
+    --glass-edge: #2a0909;
+    --led-rgb: 255 214 92;
+    --led-off: #4a3f1c;
+    --key-top: #2c2c30;
+    --key-bottom: #1f1f22;
+    --key-hover-top: #35353a;
+    --key-hover-bottom: #252528;
+    --key-edge: #45454b;
+    --key-shadow: #09090a;
+    --knob-face: #1d1d20;
+    --knob-rim: #0c0c0d;
+    --knob-ridge: #4b4b51;
+    --knob-groove: #17171a;
+    --dimple-dark: #0b0b0c;
+    --dimple-light: #29292d;
   }
 
   * { box-sizing: border-box; }
@@ -252,9 +348,9 @@
     padding: 14px 14px 12px;
     background: var(--glass);
     border: 1px solid #000;
-    box-shadow: inset 0 0 0 1px #0d2420, inset 0 8px 24px rgb(0 0 0 / 0.6);
+    box-shadow: inset 0 0 0 1px var(--glass-edge), inset 0 8px 24px rgb(0 0 0 / 0.6);
     color: var(--vfd);
-    text-shadow: 0 0 6px rgb(125 249 228 / 0.55), 0 0 18px rgb(125 249 228 / 0.18);
+    text-shadow: 0 0 6px rgb(var(--vfd-rgb) / 0.55), 0 0 18px rgb(var(--vfd-rgb) / 0.18);
     overflow: hidden;
   }
 
@@ -311,7 +407,7 @@
     background:
       repeating-linear-gradient(90deg, transparent 0 5px, var(--glass) 5px 7px),
       linear-gradient(90deg, var(--vfd) var(--fill), var(--vfd-dim) var(--fill));
-    box-shadow: 0 0 8px rgb(125 249 228 / 0.25);
+    box-shadow: 0 0 8px rgb(var(--vfd-rgb) / 0.25);
   }
 
   .seek::-moz-range-track {
@@ -319,7 +415,7 @@
     background:
       repeating-linear-gradient(90deg, transparent 0 5px, var(--glass) 5px 7px),
       linear-gradient(90deg, var(--vfd) var(--fill), var(--vfd-dim) var(--fill));
-    box-shadow: 0 0 8px rgb(125 249 228 / 0.25);
+    box-shadow: 0 0 8px rgb(var(--vfd-rgb) / 0.25);
   }
 
   .seek::-webkit-slider-thumb {
@@ -327,7 +423,7 @@
     width: 3px;
     height: 16px;
     margin-top: -3px;
-    background: #e9fffb;
+    background: var(--vfd-bright);
     border: 0;
     border-radius: 0;
     box-shadow: 0 0 6px var(--vfd);
@@ -336,7 +432,7 @@
   .seek::-moz-range-thumb {
     width: 3px;
     height: 16px;
-    background: #e9fffb;
+    background: var(--vfd-bright);
     border: 0;
     border-radius: 0;
     box-shadow: 0 0 6px var(--vfd);
@@ -360,17 +456,17 @@
     display: grid;
     place-items: center;
     color: var(--text);
-    background: linear-gradient(to bottom, #2a3456, #1f2844);
+    background: linear-gradient(to bottom, var(--key-top), var(--key-bottom));
     border: 1px solid var(--key-edge);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #0a0e1b;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--key-shadow);
     transition: transform 0.05s, box-shadow 0.05s;
   }
 
-  .key:hover { background: linear-gradient(to bottom, #303b62, #232d4c); }
+  .key:hover { background: linear-gradient(to bottom, var(--key-hover-top), var(--key-hover-bottom)); }
 
   .key:active {
     transform: translateY(3px);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 0 0 #0a0e1b;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 0 0 var(--key-shadow);
   }
 
   .key:disabled {
@@ -378,7 +474,7 @@
     cursor: default;
   }
 
-  .key:disabled:active { transform: none; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #0a0e1b; }
+  .key:disabled:active { transform: none; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--key-shadow); }
 
   /* indicator lamp in the corner of toggle keys and the play key */
   .key .lamp {
@@ -406,8 +502,8 @@
     aspect-ratio: 1;
     border-radius: 50%;
     background:
-      radial-gradient(circle, #1a2036 0 56%, #0c0f1c 56.5% 58%, transparent 58.5%),
-      repeating-conic-gradient(#3a4672 0deg 2.2deg, #151a2c 2.2deg 5deg);
+      radial-gradient(circle, var(--knob-face) 0 56%, var(--knob-rim) 56.5% 58%, transparent 58.5%),
+      repeating-conic-gradient(var(--knob-ridge) 0deg 2.2deg, var(--knob-groove) 2.2deg 5deg);
     box-shadow:
       0 0 0 1px var(--key-edge),
       inset 0 0 0 1px rgb(255 255 255 / 0.06),
@@ -439,7 +535,7 @@
     aspect-ratio: 1;
     border-radius: 50%;
     transform: translate(-50%, -50%);
-    background: radial-gradient(circle at 50% 35%, #0b0e19, #222a45);
+    background: radial-gradient(circle at 50% 35%, var(--dimple-dark), var(--dimple-light));
     box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.7), 0 1px 0 rgb(255 255 255 / 0.06);
   }
 
@@ -515,13 +611,13 @@
     background: var(--glass);
     box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--key-edge), inset 0 6px 14px rgb(0 0 0 / 0.7);
     color: var(--vfd);
-    text-shadow: 0 0 6px rgb(125 249 228 / 0.55);
+    text-shadow: 0 0 6px rgb(var(--vfd-rgb) / 0.55);
     font-size: 15px;
     font-weight: 600;
     pointer-events: none;
   }
 
-  .dial-hub span.warn { color: var(--led); text-shadow: 0 0 6px rgb(255 138 61 / 0.5); font-size: 11px; font-weight: 500; text-align: center; line-height: 1.15; }
+  .dial-hub span.warn { color: var(--led); text-shadow: 0 0 6px rgb(var(--led-rgb) / 0.5); font-size: 11px; font-weight: 500; text-align: center; line-height: 1.15; }
 
   .pop { animation: pop 0.14s ease-out; }
 
@@ -573,7 +669,7 @@
     display: block;
     width: 100%;
     height: 56px;
-    filter: drop-shadow(0 0 3px rgb(125 249 228 / 0.4));
+    filter: drop-shadow(0 0 3px rgb(var(--vfd-rgb) / 0.4));
   }
 
   .spectrum-scale {
@@ -585,6 +681,25 @@
     text-shadow: none;
   }
 
+  .spectrum { cursor: pointer; }
+  .spectrum:focus-visible { outline-offset: 2px; }
+
+  /* the mode's name, shown for a moment when a tap changes it */
+  .spectrum-mode {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    z-index: 1;
+    padding: 2px 5px;
+    background: var(--glass);
+    color: var(--vfd);
+    opacity: 0;
+    transition: opacity 0.25s;
+    pointer-events: none;
+  }
+
+  .spectrum-mode.show { opacity: 1; transition-duration: 0.05s; }
+
   .library .spectrum { margin: 0 0 14px; }
   .library .spectrum canvas { height: 64px; }
 
@@ -594,6 +709,70 @@
     display: flex;
     gap: 8px;
   }
+
+  .icon-key {
+    width: 34px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+  }
+
+  .icon-key[aria-expanded="true"] { color: var(--vfd); }
+
+  /* setup drawer: folds open under the top row, like the dial's */
+  .setup-drawer {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s;
+  }
+
+  .deck.setup-open .setup-drawer {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  .setup {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .setup-row {
+    display: grid;
+    gap: 6px;
+    padding: 0 0 12px var(--chamfer);
+  }
+
+  .setup-row:last-child {
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .skins {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .skin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 32px;
+  }
+
+  .skin[aria-checked="true"] { color: var(--text); box-shadow: inset 0 0 0 1px var(--vfd), 0 3px 0 var(--key-shadow); }
+
+  /* a little window onto that skin's display tube */
+  .swatch {
+    width: 9px;
+    height: 9px;
+    background: var(--swatch);
+    box-shadow: 0 0 6px var(--swatch);
+  }
+
+  .tape-toggle { justify-self: start; }
 
   /* library wheel: phones only, see the media query below */
   .wheel, .wheel-readout { display: none; }
@@ -767,7 +946,7 @@
   }
 
   /* the loaded song gets the amber lamp down its left edge */
-  .song.active { background: rgb(255 138 61 / 0.06); }
+  .song.active { background: rgb(var(--led-rgb) / 0.06); }
 
   .song.active::before {
     content: "";
@@ -877,6 +1056,13 @@
     }
 
     .spec { margin-left: 0; }
+    .setup-row { padding-left: 0; }
+
+    /* four keys and the close button share one row on a narrow phone */
+    .deck-top { gap: 6px; }
+    .deck-toggles { gap: 6px; }
+    .deck-top .toggle-key { padding: 0 18px 0 9px; gap: 6px; }
+    .deck-top .toggle-key .lamp { right: 6px; }
     .deck-top { margin: -4px 0 6px; }
 
     .cover-slot {
@@ -989,13 +1175,13 @@
       position: absolute;
       inset: 0 -6px 0 -6px;
       border: 1px solid var(--vfd);
-      background: rgb(125 249 228 / 0.06);
-      box-shadow: 0 0 22px rgb(125 249 228 / 0.18), inset 0 0 14px rgb(125 249 228 / 0.08);
+      background: rgb(var(--vfd-rgb) / 0.06);
+      box-shadow: 0 0 22px rgb(var(--vfd-rgb) / 0.18), inset 0 0 14px rgb(var(--vfd-rgb) / 0.08);
       opacity: var(--pop);
       pointer-events: none;
     }
 
-    .songs.drum .song .song-name { text-shadow: 0 0 calc(var(--pop) * 8px) rgb(125 249 228 / 0.5); }
+    .songs.drum .song .song-name { text-shadow: 0 0 calc(var(--pop) * 8px) rgb(var(--vfd-rgb) / 0.5); }
 
     /* half a wheel sticking out of the right edge, above the deck bar */
     .wheel {
@@ -1040,10 +1226,10 @@
       background: var(--glass);
       box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--key-edge), inset 6px 0 14px rgb(0 0 0 / 0.7);
       color: var(--vfd);
-      filter: drop-shadow(0 0 4px rgb(125 249 228 / 0.5));
+      filter: drop-shadow(0 0 4px rgb(var(--vfd-rgb) / 0.5));
     }
 
-    .wheel-hub:active { color: #e9fffb; }
+    .wheel-hub:active { color: var(--vfd-bright); }
 
     /* glass label to the left of the wheel showing the highlighted song */
     .wheel-readout {
@@ -1068,6 +1254,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .setup-drawer { transition: none; }
     .dial-drawer { transition: none; }
     .cover-slot { transition: none; }
     .deck, .deck.open { transition: none; }
@@ -1108,16 +1295,41 @@
             <svg width="16" height="9" viewBox="0 0 16 9" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 8.5a7 7 0 0 1 14 0"/><path d="M8 8.5V3"/></svg>
             Dial
           </button>
-          <button class="key key-small toggle-key spectrum-toggle" type="button" aria-pressed="true" title="Show or hide the spectrum analyser">
+          <button class="key key-small toggle-key spectrum-toggle" type="button" aria-pressed="true" title="Show or hide the visualizer">
             <span class="lamp"></span>
             <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><path d="M0 6h2v4H0zM3 2h2v8H3zM6 4h2v6H6zM9 0h2v10H9zM12 5h2v5h-2z"/></svg>
-            Spectrum
+            Visualizer
+          </button>
+          <button class="key key-small icon-key" id="setup-toggle" type="button" aria-expanded="false" aria-controls="setup-drawer" aria-label="Setup" title="Colours and tape effects">
+            <svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M0 3h16M0 11h16"/><rect x="3" y="0.8" width="3" height="4.4" fill="currentColor" stroke="none"/><rect x="10" y="8.8" width="3" height="4.4" fill="currentColor" stroke="none"/></svg>
           </button>
         </div>
         <button class="deck-close" id="deck-close" type="button" aria-label="Back to library">
           Library
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
         </button>
+      </div>
+
+      <div class="setup-drawer" id="setup-drawer">
+        <div class="setup">
+          <div class="setup-row">
+            <span class="micro" id="skin-label">Display colour</span>
+            <div class="skins" role="radiogroup" aria-labelledby="skin-label">
+              <button class="key key-small skin" type="button" role="radio" data-skin="aqua" style="--swatch: #7df9e4" aria-checked="true"><span class="swatch"></span>Aqua</button>
+              <button class="key key-small skin" type="button" role="radio" data-skin="amber" style="--swatch: #ffa636" aria-checked="false"><span class="swatch"></span>Amber</button>
+              <button class="key key-small skin" type="button" role="radio" data-skin="green" style="--swatch: #66ff8c" aria-checked="false"><span class="swatch"></span>Green</button>
+              <button class="key key-small skin" type="button" role="radio" data-skin="red" style="--swatch: #ff4c4c" aria-checked="false"><span class="swatch"></span>Red</button>
+            </div>
+          </div>
+          <div class="setup-row">
+            <span class="micro">Tape deck</span>
+            <button class="key key-small toggle-key tape-toggle" id="tape-toggle" type="button" aria-pressed="true" title="Pause winds the song down, play spins it back up">
+              <span class="lamp"></span>
+              <svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="4.5" cy="5" r="3.5"/><circle cx="13.5" cy="5" r="3.5"/><path d="M4.5 8.5h9"/></svg>
+              Wind down on pause, spin up on play
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="spec micro">
@@ -1138,9 +1350,10 @@
         </div>
       </div>
 
-      <div class="spectrum vfd" id="deck-spectrum" aria-hidden="true">
-        <canvas></canvas>
-        <div class="spectrum-scale micro"><span>40</span><span>180</span><span>800</span><span>3.6k</span><span>16k Hz</span></div>
+      <div class="spectrum vfd" id="deck-spectrum" role="button" tabindex="0" title="Change what the visualizer shows">
+        <canvas aria-hidden="true"></canvas>
+        <div class="spectrum-scale micro" aria-hidden="true"></div>
+        <span class="spectrum-mode micro" aria-hidden="true"></span>
       </div>
 
       <div class="keys">
@@ -1201,10 +1414,10 @@
   <main class="library marked">
     <div class="library-head">
       <h2>Library</h2>
-      <button class="key key-small toggle-key spectrum-toggle" type="button" aria-pressed="true" title="Show or hide the spectrum analyser">
+      <button class="key key-small toggle-key spectrum-toggle" type="button" aria-pressed="true" title="Show or hide the visualizer">
         <span class="lamp"></span>
         <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><path d="M0 6h2v4H0zM3 2h2v8H3zM6 4h2v6H6zM9 0h2v10H9zM12 5h2v5h-2z"/></svg>
-        Spectrum
+        Visualizer
       </button>
       <label class="search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
@@ -1212,9 +1425,10 @@
       </label>
     </div>
 
-    <div class="spectrum vfd" id="library-spectrum" aria-hidden="true">
-      <canvas></canvas>
-      <div class="spectrum-scale micro"><span>40</span><span>180</span><span>800</span><span>3.6k</span><span>16k Hz</span></div>
+    <div class="spectrum vfd" id="library-spectrum" role="button" tabindex="0" title="Change what the visualizer shows">
+      <canvas aria-hidden="true"></canvas>
+      <div class="spectrum-scale micro" aria-hidden="true"></div>
+      <span class="spectrum-mode micro" aria-hidden="true"></span>
     </div>
 
     <div class="table-head micro" aria-hidden="true">
@@ -1267,6 +1481,9 @@ const $ = (id) => document.getElementById(id);
 
 const audio = new Audio();
 audio.preload = "auto";
+
+// the volume you set. audio.volume dips below it while the tape winds down
+let userVolume = 1;
 
 let songs = [];       // { file, title, artist, album, year, track, format, size, art, row }
 let order = [];       // song indices in play order (shuffled or not)
@@ -1518,6 +1735,7 @@ function playSong(i) {
   current = i;
   song.row.classList.add("active");
 
+  resetTape();
   audio.src = songUrl(song);
   audio.play().catch(() => {});
   showNowPlaying(song);
@@ -1549,6 +1767,96 @@ function previous() {
   }
 }
 
+// ---------- tape deck ----------
+
+// pausing winds the song down like a tape machine losing power, and
+// playing spins it back up. the pitch follows the speed, as on tape
+let tapeOn = loadSetting("sonde-tape", "on") === "on";
+let tapeStopping = false;
+let tapeTimer = 0;
+
+audio.preservesPitch = false;
+audio.webkitPreservesPitch = false; // older Safari
+
+// how loud a speed sounds, so it fades out as it winds down
+function tapeVolume(rate) {
+  const t = Math.min(1, Math.max(0, (rate - 0.2) / 0.8));
+  return userVolume * Math.sqrt(t);
+}
+
+// ease the speed from where it is now to rate over ms, then call done.
+// timers rather than animation frames, so it finishes in a background tab
+function rampTape(rate, ms, ease, done) {
+  clearTimeout(tapeTimer);
+  const from = audio.playbackRate;
+  const start = performance.now();
+
+  const step = () => {
+    const t = Math.min(1, (performance.now() - start) / ms);
+    const speed = from + (rate - from) * ease(t);
+
+    audio.playbackRate = speed;
+    if (volumeWorks) {
+      audio.volume = tapeVolume(speed);
+    }
+
+    if (t < 1) {
+      tapeTimer = setTimeout(step, 16);
+    } else {
+      done?.();
+    }
+  };
+  step();
+}
+
+function resetTape() {
+  clearTimeout(tapeTimer);
+  tapeStopping = false;
+  audio.playbackRate = 1;
+  if (volumeWorks) {
+    audio.volume = userVolume;
+  }
+}
+
+function pausePlayback() {
+  if (audio.paused || tapeStopping) {
+    return;
+  }
+  // nobody's watching a hidden page, so don't keep the music going while it winds down
+  if (!tapeOn || document.hidden) {
+    resetTape();
+    audio.pause();
+    return;
+  }
+
+  tapeStopping = true;
+  updatePlayState();
+  rampTape(0.22, 520, (t) => t * t, () => {
+    audio.pause();
+    resetTape();
+  });
+}
+
+function resumePlayback() {
+  if (!tapeOn || document.hidden) {
+    resetTape();
+    audio.play().catch(() => {});
+    return;
+  }
+
+  // from a standstill it starts slow, mid wind-down it picks up from there
+  if (audio.paused) {
+    audio.playbackRate = 0.3;
+    if (volumeWorks) {
+      audio.volume = tapeVolume(0.3);
+    }
+  }
+  tapeStopping = false;
+  audio.play().catch(() => {});
+  updatePlayState();
+  rampTape(1, 420, (t) => 1 - Math.pow(1 - t, 3), resetTape);
+}
+
 function togglePlay() {
   if (current < 0) {
     if (songs.length) {
@@ -1556,15 +1864,16 @@ function togglePlay() {
     }
     return;
   }
-  if (audio.paused) {
-    audio.play().catch(() => {});
+  if (audio.paused || tapeStopping) {
+    resumePlayback();
   } else {
-    audio.pause();
+    pausePlayback();
   }
 }
 
 function updatePlayState() {
-  const playing = !audio.paused;
+  // it counts as stopped the moment it starts winding down
+  const playing = !audio.paused && !tapeStopping;
   document.body.classList.toggle("playing", playing);
 
   for (const key of [$("play"), $("mini-play")]) {
@@ -1671,7 +1980,7 @@ document.addEventListener("keydown", (event) => {
     $("search").value = "";
     applySearch();
     $("search").blur();
-  } else if (typing || event.target.matches("button, input, [role=slider]")) {
+  } else if (typing || event.target.matches("button, input, [role=slider], [role=button]")) {
     return;
   } else if (event.key === " ") {
     event.preventDefault();
@@ -1686,8 +1995,8 @@ document.addEventListener("keydown", (event) => {
 // lock screen and headphone buttons on phones
 if ("mediaSession" in navigator) {
   const handlers = {
-    play: () => audio.play(),
-    pause: () => audio.pause(),
+    play: resumePlayback,
+    pause: pausePlayback,
     previoustrack: previous,
     nexttrack: () => step(1),
     seekto: (details) => { audio.currentTime = details.seekTime; },
@@ -2103,7 +2412,11 @@ function dialReadout(text, warn = false) {
 }
 
 function setVolume(level) {
-  audio.volume = level;
+  userVolume = level;
+  // mid wind-down the fade owns audio.volume, and ends at the new level
+  if (!tapeStopping) {
+    audio.volume = level;
+  }
   saveSetting("sonde-volume", String(level));
   $("dial").setAttribute("aria-valuetext", `Volume ${Math.round(level * 100)}%`);
 }
@@ -2210,8 +2523,8 @@ function setDialMode(mode) {
 
   if (mode === "volume") {
     if (volumeWorks) {
-      deckDial.setValue(audio.volume * 180 - 90, true);
-      dialReadout(`${Math.round(audio.volume * 100)}%`);
+      deckDial.setValue(userVolume * 180 - 90, true);
+      dialReadout(`${Math.round(userVolume * 100)}%`);
     } else {
       deckDial.setValue(90, true);
       dialReadout("Use side buttons", true);
@@ -2245,43 +2558,83 @@ $("dial-toggle").addEventListener("click", () => {
   clicks.confirm();
 });
 
-// ---------- spectrum analyser ----------
+// ---------- visualizer: spectrum bars, scope and VU meters ----------
 
 // band edges and the loudness range the bars cover
 const SPECTRUM_LOW = 40;
 const SPECTRUM_HIGH = 16000;
 const SPECTRUM_FLOOR = -80;
 const SPECTRUM_CEILING = -14;
-const SPECTRUM_TILT = 18;     // dB added across the range, highs are quieter in music
+const SPECTRUM_TILT = 18;      // dB added across the range, highs are quieter in music
 const SPECTRUM_CONTRAST = 1.5; // bends levels down so the bars move more
 
-const SEGMENT_LIT = "#7df9e4";
-const SEGMENT_HOT = "#ff8a3d";
-const SEGMENT_PEAK = "#e9fffb";
-const SEGMENT_GHOST = "rgb(125 249 228 / 0.08)";
+// the scope shows this many samples, about 43 ms
+const SCOPE_SAMPLES = 2048;
+
+// how loud (RMS, in dB below full scale) reads as 0 on the VU meters.
+// modern masters run at -12 to -5, far hotter than the studio's -18, so
+// 0 sits high enough that loud songs swing round it instead of pinning
+const VU_ZERO = -8;
+const VU_MARKS = [-20, -10, -7, -5, -3, -2, -1, 0, 1, 2, 3];
+
+const VIZ_MODES = ["bars", "scope", "vu"];
+const VIZ_NAMES = { bars: "Spectrum", scope: "Scope", vu: "VU meters" };
 
 // seeing the sound means routing the player through Web Audio, and on
 // iPhone that can go quiet when the screen locks, so it starts off there
 let spectrumShown = loadSetting("sonde-spectrum", volumeWorks ? "shown" : "hidden") === "shown";
 let analyser = null;
-let analyserBins = null;
+let analyserBins = null;   // frequency data for the bars
+let waveBins = null;       // samples for the scope
+let channels = null;       // left and right analysers for the VU meters
+let channelBins = null;
 let spectrumFrame = 0;
 let spectrumLast = 0;
 
-// each canvas with how many bars and segments fit it, and each bar's level and peak
-const spectrumPanels = ["deck-spectrum", "library-spectrum"].map((id) => ({
-  el: $(id),
-  canvas: $(id).querySelector("canvas"),
-  bars: 0,
-  segments: 0,
-  edges: [],
-  levels: null,
-  peaks: null,
-  held: null,
-}));
+// colours come from the skin, and are read again when it changes
+let vizColours = {};
 
-// hook the player into an analyser. browsers only start audio from a touch
-// or key press, so this runs on those. once routed it stays routed
+function readVizColours() {
+  const style = getComputedStyle(document.documentElement);
+  const rgb = style.getPropertyValue("--vfd-rgb").trim();
+
+  vizColours = {
+    lit: `rgb(${rgb})`,
+    dim: `rgb(${rgb} / 0.45)`,
+    grid: `rgb(${rgb} / 0.13)`,
+    ghost: `rgb(${rgb} / 0.08)`,
+    hot: style.getPropertyValue("--led").trim(),
+    bright: style.getPropertyValue("--vfd-bright").trim(),
+    font: getComputedStyle(document.body).fontFamily,
+  };
+}
+
+// each canvas with its display mode, and what that mode remembers between frames
+const spectrumPanels = ["deck", "library"].map((name) => {
+  const el = $(`${name}-spectrum`);
+  const saved = loadSetting(`sonde-viz-${name}`, name === "deck" ? "vu" : "bars");
+
+  return {
+    name,
+    el,
+    canvas: el.querySelector("canvas"),
+    scale: el.querySelector(".spectrum-scale"),
+    badge: el.querySelector(".spectrum-mode"),
+    mode: VIZ_MODES.includes(saved) ? saved : "bars",
+    bars: 0,
+    segments: 0,
+    edges: [],
+    levels: null,
+    peaks: null,
+    held: null,
+    needles: [{ pos: 0, speed: 0, over: -Infinity }, { pos: 0, speed: 0, over: -Infinity }],
+    idle: 0,
+    badgeTimer: 0,
+  };
+});
+
+// hook the player into the analysers. browsers only start audio from a
+// touch or key press, so this runs on those. once routed it stays routed
 function connectSpectrum() {
   if (analyser) {
     if (analyser.context.state === "suspended") {
@@ -2302,7 +2655,27 @@ function connectSpectrum() {
     analyser.smoothingTimeConstant = 0.55;
     source.connect(analyser);
     analyser.connect(ctx.destination);
+
+    // the meters listen to each side on its own. they go nowhere, but
+    // some browsers only run nodes that lead to the speakers, so feed
+    // them into a silent gain that does
+    const splitter = ctx.createChannelSplitter(2);
+    const silent = ctx.createGain();
+    silent.gain.value = 0;
+    silent.connect(ctx.destination);
+    source.connect(splitter);
+
+    channels = [0, 1].map((side) => {
+      const meter = ctx.createAnalyser();
+      meter.fftSize = 2048;
+      splitter.connect(meter, side);
+      meter.connect(silent);
+      return meter;
+    });
+
     analyserBins = new Float32Array(analyser.frequencyBinCount);
+    waveBins = new Float32Array(analyser.fftSize);
+    channelBins = new Float32Array(2048);
   } catch {
     analyser = null;
   }
@@ -2311,7 +2684,7 @@ function connectSpectrum() {
 addEventListener("pointerup", connectSpectrum, true);
 addEventListener("keydown", connectSpectrum, true);
 
-// fit bars and segments to the canvas's size on screen
+// fit the canvas and the bars to its size on screen
 function sizeSpectrum(panel) {
   const rect = panel.canvas.getBoundingClientRect();
   const dpr = devicePixelRatio || 1;
@@ -2340,101 +2713,294 @@ function panelOnScreen(panel) {
     return true;
   }
   const deckOpen = document.body.classList.contains("deck-open");
-  return panel.el.id === "deck-spectrum" ? deckOpen : !deckOpen;
+  return panel.name === "deck" ? deckOpen : !deckOpen;
 }
+
+// the analysers hear the sound after the volume, so undo that and the
+// display shows the music rather than how loud it's turned up
+function volumeLift() {
+  return 1 / Math.max(0.05, userVolume);
+}
+
+// segmented LED bars with peaks that hang then fall. returns true while
+// anything is still moving
+function drawBars(panel, now, dt, live) {
+  const { canvas, bars, segments, levels, peaks, held, edges } = panel;
+  const g = canvas.getContext("2d");
+  const dpr = devicePixelRatio || 1;
+  const gap = Math.max(1, Math.round(2 * dpr));
+  const segmentGap = Math.max(1, Math.round(dpr));
+  const barWidth = (canvas.width - gap * (bars - 1)) / bars;
+  const segmentHeight = (canvas.height - segmentGap * (segments - 1)) / segments;
+  const hotFrom = Math.round(segments * 0.82);
+  const binHz = analyser ? analyser.context.sampleRate / analyser.fftSize : 1;
+  const lift = 20 * Math.log10(volumeLift());
+  const paths = { ghost: new Path2D(), lit: new Path2D(), hot: new Path2D(), peak: new Path2D() };
+  let moving = live;
+
+  for (let i = 0; i < bars; i++) {
+    let target = 0;
+
+    if (live) {
+      const lo = Math.floor(edges[i] / binHz);
+      const hi = Math.max(lo, Math.floor(edges[i + 1] / binHz));
+      let db = -Infinity;
+
+      for (let k = lo; k <= hi && k < analyserBins.length; k++) {
+        db = Math.max(db, analyserBins[k]);
+      }
+      // music is quieter up high, so tilt it up or the right side sits empty
+      db += lift + (i / bars) * SPECTRUM_TILT;
+      const level = Math.min(1, Math.max(0, (db - SPECTRUM_FLOOR) / (SPECTRUM_CEILING - SPECTRUM_FLOOR)));
+      target = Math.pow(level, SPECTRUM_CONTRAST);
+    }
+
+    // bars jump up and fall back, peaks hang for a moment then drop
+    levels[i] = target > levels[i] ? target : Math.max(target, levels[i] - 1.8 * dt);
+
+    if (levels[i] >= peaks[i]) {
+      peaks[i] = levels[i];
+      held[i] = now;
+    } else if (now - held[i] > 450) {
+      peaks[i] = Math.max(levels[i], peaks[i] - 0.6 * dt);
+    }
+
+    if (levels[i] > 0.001 || peaks[i] > 0.001) {
+      moving = true;
+    }
+
+    const lit = Math.round(levels[i] * segments);
+    const peak = peaks[i] > 0.04 ? Math.min(segments - 1, Math.ceil(peaks[i] * segments) - 1) : -1;
+    const x = Math.round(i * (barWidth + gap));
+    const width = Math.round((i + 1) * (barWidth + gap) - gap) - x;
+
+    for (let s = 0; s < segments; s++) {
+      const y = Math.round(canvas.height - (s + 1) * segmentHeight - s * segmentGap);
+      const height = Math.max(1, Math.round(segmentHeight));
+      const path = s < lit ? (s >= hotFrom ? paths.hot : paths.lit) : s === peak ? paths.peak : paths.ghost;
+      path.rect(x, y, width, height);
+    }
+  }
+
+  g.clearRect(0, 0, canvas.width, canvas.height);
+  g.fillStyle = vizColours.ghost;
+  g.fill(paths.ghost);
+  g.fillStyle = vizColours.lit;
+  g.fill(paths.lit);
+  g.fillStyle = vizColours.hot;
+  g.fill(paths.hot);
+  g.fillStyle = vizColours.bright;
+  g.fill(paths.peak);
+  return moving;
+}
+
+// an oscilloscope trace on a graticule, with a phosphor afterglow
+function drawScope(panel, now, dt, live) {
+  const { canvas } = panel;
+  const g = canvas.getContext("2d");
+  const dpr = devicePixelRatio || 1;
+  const w = canvas.width;
+  const h = canvas.height;
+
+  // fade what's there instead of clearing it, so the trace leaves a glow
+  g.globalCompositeOperation = "destination-out";
+  g.fillStyle = "rgb(0 0 0 / 0.5)";
+  g.fillRect(0, 0, w, h);
+  g.globalCompositeOperation = "source-over";
+
+  // ten by four divisions, like a scope screen
+  const grid = new Path2D();
+  for (let i = 1; i < 10; i++) {
+    const x = Math.round((w * i) / 10) + 0.5;
+    grid.moveTo(x, 0);
+    grid.lineTo(x, h);
+  }
+  for (let i = 1; i < 4; i++) {
+    const y = Math.round((h * i) / 4) + 0.5;
+    grid.moveTo(0, y);
+    grid.lineTo(w, y);
+  }
+  g.strokeStyle = vizColours.grid;
+  g.lineWidth = 1;
+  g.stroke(grid);
+
+  let start = 0;
+
+  if (live) {
+    analyser.getFloatTimeDomainData(waveBins);
+    // start where the wave rises through zero, like a scope's trigger,
+    // so it stands still instead of sliding about
+    for (let i = 1; i < waveBins.length - SCOPE_SAMPLES; i++) {
+      if (waveBins[i - 1] < 0 && waveBins[i] >= 0) {
+        start = i;
+        break;
+      }
+    }
+  }
+
+  const gain = Math.min(4, volumeLift()) * 0.9;
+  const trace = new Path2D();
+
+  for (let x = 0; x <= w; x += Math.max(1, Math.round(dpr))) {
+    const sample = live ? waveBins[start + Math.floor((x / w) * (SCOPE_SAMPLES - 1))] * gain : 0;
+    const y = Math.min(h - 1, Math.max(1, h / 2 - sample * h * 0.46));
+    if (x === 0) {
+      trace.moveTo(x, y);
+    } else {
+      trace.lineTo(x, y);
+    }
+  }
+  g.strokeStyle = vizColours.lit;
+  g.lineWidth = Math.max(1, 1.5 * dpr);
+  g.lineJoin = "round";
+  g.stroke(trace);
+
+  // once stopped, keep drawing until the afterglow has faded
+  panel.idle = live ? 0 : panel.idle + 1;
+  return panel.idle < 12;
+}
+
+// where a VU reading sits on the scale, 0 at -20 and 1 at +3. the scale is
+// even in voltage rather than decibels, which bunches the low end up
+function vuPosition(vu) {
+  return (Math.pow(10, vu / 20) - 0.1) / (Math.pow(10, 3 / 20) - 0.1);
+}
+
+// a pair of needle meters, left and right
+function drawVu(panel, now, dt, live) {
+  const { canvas, needles } = panel;
+  const g = canvas.getContext("2d");
+  const dpr = devicePixelRatio || 1;
+  const w = canvas.width;
+  const h = canvas.height;
+  const half = w / 2;
+  const radius = Math.min(half * 0.5, h * 0.95);
+  const pivotY = h * 1.1;
+  const sweep = 48; // degrees either side of upright
+  const rms = [0, 0];
+  let moving = live;
+
+  if (live && channels) {
+    channels.forEach((meter, side) => {
+      meter.getFloatTimeDomainData(channelBins);
+      let sum = 0;
+      for (const sample of channelBins) {
+        sum += sample * sample;
+      }
+      rms[side] = Math.sqrt(sum / channelBins.length);
+    });
+    // a mono song only reaches the left side
+    if (rms[1] < 1e-5) {
+      rms[1] = rms[0];
+    }
+  }
+
+  g.clearRect(0, 0, w, h);
+  g.font = `500 ${Math.round(9 * dpr)}px ${vizColours.font}`;
+  g.textAlign = "center";
+
+  needles.forEach((needle, side) => {
+    const vu = rms[side] > 0 ? 20 * Math.log10(rms[side] * volumeLift()) - VU_ZERO : -40;
+    const target = vuPosition(Math.max(-20, Math.min(3.6, vu)));
+
+    // a spring that's a little underdamped, so the needle swings slightly
+    // past and settles back like a real one
+    needle.speed += ((target - needle.pos) * 230 - needle.speed * 24) * dt;
+    needle.pos = Math.min(1.06, Math.max(-0.02, needle.pos + needle.speed * dt));
+    if (vu > 0.5) {
+      needle.over = now;
+    }
+    if (Math.abs(needle.speed) > 0.002 || Math.abs(target - needle.pos) > 0.002) {
+      moving = true;
+    }
+
+    // side by side in the middle, like the pair on a tape deck, rather
+    // than at the far ends of a wide panel
+    const spread = Math.min(half / 2, radius * 1.5);
+    const cx = w / 2 + (side ? spread : -spread);
+    const angle = (p) => ((-sweep + 2 * sweep * p) * Math.PI) / 180;
+    const at = (p, r) => [cx + Math.sin(angle(p)) * r, pivotY - Math.cos(angle(p)) * r];
+
+    // scale arc, with the part past 0 in the lamp colour
+    g.lineWidth = Math.max(1, dpr);
+    g.strokeStyle = vizColours.dim;
+    g.beginPath();
+    g.arc(cx, pivotY, radius, angle(0) - Math.PI / 2, angle(vuPosition(0)) - Math.PI / 2);
+    g.stroke();
+    g.strokeStyle = vizColours.hot;
+    g.lineWidth = Math.max(2, 2.5 * dpr);
+    g.beginPath();
+    g.arc(cx, pivotY, radius, angle(vuPosition(0)) - Math.PI / 2, angle(1) - Math.PI / 2);
+    g.stroke();
+
+    for (const mark of VU_MARKS) {
+      const p = vuPosition(mark);
+      const major = mark === -20 || mark === -10 || mark === -5 || mark === 0 || mark === 3;
+      const [x1, y1] = at(p, radius);
+      const [x2, y2] = at(p, radius * (major ? 0.82 : 0.9));
+      g.strokeStyle = mark > 0 ? vizColours.hot : vizColours.lit;
+      g.lineWidth = Math.max(1, dpr);
+      g.beginPath();
+      g.moveTo(x1, y1);
+      g.lineTo(x2, y2);
+      g.stroke();
+    }
+
+    // numbers only where there's room for them
+    if (radius > 34 * dpr) {
+      g.fillStyle = vizColours.dim;
+      for (const mark of [-20, -5, 0, 3]) {
+        const [x, y] = at(vuPosition(mark), radius * 0.66);
+        g.fillText(mark > 0 ? `+${mark}` : String(mark), x, y + 3 * dpr);
+      }
+    }
+
+    g.fillStyle = vizColours.dim;
+    g.fillText(side ? "R" : "L", cx, h - 3 * dpr);
+
+    // overload lamp, lit for a moment whenever it goes past 0
+    g.fillStyle = now - needle.over < 350 ? vizColours.hot : vizColours.ghost;
+    g.fillRect(Math.round(cx + radius * 0.78), Math.round(3 * dpr), Math.round(4 * dpr), Math.round(4 * dpr));
+
+    const [tipX, tipY] = at(needle.pos, radius * 1.04);
+    g.strokeStyle = vizColours.bright;
+    g.lineWidth = Math.max(1, 1.4 * dpr);
+    g.beginPath();
+    g.moveTo(cx, pivotY);
+    g.lineTo(tipX, tipY);
+    g.stroke();
+  });
+
+  return moving;
+}
+
+const VIZ_DRAW = { bars: drawBars, scope: drawScope, vu: drawVu };
 
 function drawSpectrum(now) {
   const dt = Math.min(0.05, (now - spectrumLast) / 1000);
   spectrumLast = now;
 
   const live = analyser && !audio.paused;
-  let moving = live;
+  let moving = false;
 
   if (live) {
     analyser.getFloatFrequencyData(analyserBins);
   }
-  const binHz = analyser ? analyser.context.sampleRate / analyser.fftSize : 1;
-
-  // the analyser hears the sound after the volume, so undo that and the
-  // bars show the music rather than how loud it's turned up
-  const lift = -20 * Math.log10(Math.max(0.05, audio.volume));
 
   for (const panel of spectrumPanels) {
-    if (!panelOnScreen(panel)) {
-      continue;
+    if (panelOnScreen(panel) && VIZ_DRAW[panel.mode](panel, now, dt, live)) {
+      moving = true;
     }
-
-    const { canvas, bars, segments, levels, peaks, held, edges } = panel;
-    const g = canvas.getContext("2d");
-    const dpr = devicePixelRatio || 1;
-    const gap = Math.max(1, Math.round(2 * dpr));
-    const segmentGap = Math.max(1, Math.round(dpr));
-    const barWidth = (canvas.width - gap * (bars - 1)) / bars;
-    const segmentHeight = (canvas.height - segmentGap * (segments - 1)) / segments;
-    const hotFrom = Math.round(segments * 0.82);
-
-    const paths = { ghost: new Path2D(), lit: new Path2D(), hot: new Path2D(), peak: new Path2D() };
-
-    for (let i = 0; i < bars; i++) {
-      let target = 0;
-
-      if (live) {
-        const lo = Math.floor(edges[i] / binHz);
-        const hi = Math.max(lo, Math.floor(edges[i + 1] / binHz));
-        let db = -Infinity;
-
-        for (let k = lo; k <= hi && k < analyserBins.length; k++) {
-          db = Math.max(db, analyserBins[k]);
-        }
-        // music is quieter up high, so tilt it up or the right side sits empty
-        db += lift + (i / bars) * SPECTRUM_TILT;
-        const level = Math.min(1, Math.max(0, (db - SPECTRUM_FLOOR) / (SPECTRUM_CEILING - SPECTRUM_FLOOR)));
-        target = Math.pow(level, SPECTRUM_CONTRAST);
-      }
-
-      // bars jump up and fall back, peaks hang for a moment then drop
-      levels[i] = target > levels[i] ? target : Math.max(target, levels[i] - 1.8 * dt);
-
-      if (levels[i] >= peaks[i]) {
-        peaks[i] = levels[i];
-        held[i] = now;
-      } else if (now - held[i] > 450) {
-        peaks[i] = Math.max(levels[i], peaks[i] - 0.6 * dt);
-      }
-
-      if (levels[i] > 0.001 || peaks[i] > 0.001) {
-        moving = true;
-      }
-
-      const lit = Math.round(levels[i] * segments);
-      const peak = peaks[i] > 0.04 ? Math.min(segments - 1, Math.ceil(peaks[i] * segments) - 1) : -1;
-      const x = Math.round(i * (barWidth + gap));
-      const width = Math.round((i + 1) * (barWidth + gap) - gap) - x;
-
-      for (let s = 0; s < segments; s++) {
-        const y = Math.round(canvas.height - (s + 1) * segmentHeight - s * segmentGap);
-        const height = Math.max(1, Math.round(segmentHeight));
-        const path = s < lit ? (s >= hotFrom ? paths.hot : paths.lit) : s === peak ? paths.peak : paths.ghost;
-        path.rect(x, y, width, height);
-      }
-    }
-
-    g.clearRect(0, 0, canvas.width, canvas.height);
-    g.fillStyle = SEGMENT_GHOST;
-    g.fill(paths.ghost);
-    g.fillStyle = SEGMENT_LIT;
-    g.fill(paths.lit);
-    g.fillStyle = SEGMENT_HOT;
-    g.fill(paths.hot);
-    g.fillStyle = SEGMENT_PEAK;
-    g.fill(paths.peak);
   }
 
-  // stop drawing once it's paused and everything has fallen to the floor
+  // stop drawing once it's paused and everything has come to rest
   spectrumFrame = moving ? requestAnimationFrame(drawSpectrum) : 0;
 }
 
 function wakeSpectrum() {
+  for (const panel of spectrumPanels) {
+    panel.idle = 0;
+  }
   if (spectrumShown && !spectrumFrame) {
     spectrumLast = performance.now();
     spectrumFrame = requestAnimationFrame(drawSpectrum);
@@ -2454,6 +3020,60 @@ for (const panel of spectrumPanels) {
   spectrumResize.observe(panel.canvas);
 }
 
+// the labels along the bottom, which depend on what's being shown
+function scaleLabels(mode) {
+  if (mode === "bars") {
+    return ["40", "180", "800", "3.6k", "16k Hz"];
+  }
+  if (mode === "scope") {
+    const rate = analyser ? analyser.context.sampleRate : 48000;
+    return ["Waveform", `${Math.round((SCOPE_SAMPLES / rate) * 1000)} ms`];
+  }
+  return ["Left", "VU", "Right"];
+}
+
+function setVizMode(panel, mode, announce) {
+  panel.mode = mode;
+  saveSetting(`sonde-viz-${panel.name}`, mode);
+
+  panel.scale.replaceChildren(...scaleLabels(mode).map((text) => {
+    const span = document.createElement("span");
+    span.textContent = text;
+    return span;
+  }));
+  panel.el.setAttribute("aria-label", `Visualizer showing ${VIZ_NAMES[mode]}. Press to change`);
+
+  // start the new display from a blank screen
+  panel.canvas.getContext("2d").clearRect(0, 0, panel.canvas.width, panel.canvas.height);
+  if (panel.levels) {
+    panel.levels.fill(0);
+    panel.peaks.fill(0);
+  }
+
+  if (announce) {
+    panel.badge.textContent = VIZ_NAMES[mode];
+    panel.badge.classList.add("show");
+    clearTimeout(panel.badgeTimer);
+    panel.badgeTimer = setTimeout(() => panel.badge.classList.remove("show"), 900);
+  }
+  wakeSpectrum();
+}
+
+for (const panel of spectrumPanels) {
+  const next = () => {
+    setVizMode(panel, VIZ_MODES[(VIZ_MODES.indexOf(panel.mode) + 1) % VIZ_MODES.length], true);
+    clicks.tick(1.1);
+  };
+
+  panel.el.addEventListener("click", next);
+  panel.el.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      next();
+    }
+  });
+}
+
 function setSpectrumShown(shown) {
   spectrumShown = shown;
   document.body.classList.toggle("no-spectrum", !shown);
@@ -2462,7 +3082,7 @@ function setSpectrumShown(shown) {
   }
   saveSetting("sonde-spectrum", shown ? "shown" : "hidden");
 
-  // the library's analyser sits above the list, so the rows moved
+  // the library's visualizer sits above the list, so the rows moved
   measureRows();
   followScroll();
   wakeSpectrum();
@@ -2477,6 +3097,56 @@ for (const key of document.querySelectorAll(".spectrum-toggle")) {
   });
 }
 
+// ---------- setup: skins and the tape deck ----------
+
+const SKINS = ["aqua", "amber", "green", "red"];
+
+function setSkin(skin) {
+  if (!SKINS.includes(skin)) {
+    skin = "aqua";
+  }
+  if (skin === "aqua") {
+    delete document.documentElement.dataset.skin;
+  } else {
+    document.documentElement.dataset.skin = skin;
+  }
+  for (const key of document.querySelectorAll(".skin")) {
+    key.setAttribute("aria-checked", key.dataset.skin === skin);
+  }
+  saveSetting("sonde-skin", skin);
+  readVizColours();
+  wakeSpectrum();
+}
+
+for (const key of document.querySelectorAll(".skin")) {
+  key.addEventListener("click", () => {
+    setSkin(key.dataset.skin);
+    clicks.confirm();
+  });
+}
+
+function setTapeOn(on) {
+  tapeOn = on;
+  $("tape-toggle").setAttribute("aria-pressed", on);
+  saveSetting("sonde-tape", on ? "on" : "off");
+}
+
+$("tape-toggle").addEventListener("click", () => {
+  setTapeOn(!tapeOn);
+  clicks.confirm();
+});
+
+function setSetupOpen(open) {
+  $("deck").classList.toggle("setup-open", open);
+  $("setup-toggle").setAttribute("aria-expanded", open);
+  $("setup-drawer").inert = !open;
+}
+
+$("setup-toggle").addEventListener("click", () => {
+  setSetupOpen(!$("deck").classList.contains("setup-open"));
+  clicks.tick(1.2);
+});
+
 // arrow keys turn the dial one step for keyboard users
 $("dial").addEventListener("keydown", (event) => {
   const direction = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[event.key];
@@ -2486,7 +3156,7 @@ $("dial").addEventListener("keydown", (event) => {
   event.preventDefault();
 
   if (dialMode === "volume" && volumeWorks) {
-    const level = Math.min(1, Math.max(0, Math.round(audio.volume * 20 + direction) / 20));
+    const level = Math.min(1, Math.max(0, Math.round(userVolume * 20 + direction) / 20));
     setVolume(level);
     deckDial.setValue(level * 180 - 90, true);
     dialReadout(`${Math.round(level * 100)}%`);
@@ -2781,12 +3451,19 @@ async function loadSongs() {
 }
 
 if (volumeWorks) {
-  audio.volume = Number(loadSetting("sonde-volume", "1")) || 0;
+  userVolume = Number(loadSetting("sonde-volume", "1")) || 0;
+  audio.volume = userVolume;
 }
 $("clicks").setAttribute("aria-pressed", clicks.on);
 deckDial.setValue(0, false);
 setDialShown(loadSetting("sonde-dial", "shown") === "shown");
 wheel.setValue(0, false);
+setSkin(loadSetting("sonde-skin", "aqua"));
+setTapeOn(tapeOn);
+setSetupOpen(false);
+for (const panel of spectrumPanels) {
+  setVizMode(panel, panel.mode, false);
+}
 setSpectrumShown(spectrumShown);
 
 $("stat-address").textContent = location.host;

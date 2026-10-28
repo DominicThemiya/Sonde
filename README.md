@@ -8,7 +8,10 @@ command line client that plays a song through a player like mpv.
 - One file to run, no dependencies, no database: point it at a folder
 - Web player with cover art, tags, search, shuffle and repeat
 - Seek and volume dial, and a library wheel on phones
-- Retro spectrum analyser in the library and the player, on or off with one key
+- Retro visualizer in the library and the player: LED spectrum bars, an
+  oscilloscope or a pair of VU meters, tap it to switch
+- Tape-deck pause: the song winds down when you pause and spins up when you play
+- Four display colours: aqua, amber, green and red
 - Installs on a phone's home screen like an app
 - Linux and Windows
 
