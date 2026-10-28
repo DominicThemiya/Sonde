@@ -37,7 +37,7 @@ Download the latest build from
    ./sonded ~/Music
    ```
 
-   It prints `Sonde 0.2.0 serving /home/you/Music on port 8080` and logs each request.
+   It prints `Sonde 0.3.0 serving /home/you/Music on port 8080` and logs each request.
    Songs are the `.mp3` and `.flac` files directly inside that folder.
 
 3. Open <http://localhost:8080> in a browser.
