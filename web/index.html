@@ -13,12 +13,12 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M0 0h26l6 6v26H6l-6-6z' fill='%23000'/%3E%3Cpath d='M8 21v-8M13 24V8M18 21v-8M23 18v-2' stroke='%237df9e4' stroke-width='2.5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&family=Michroma&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Martian+Mono:wdth,wght@75..112.5,100..800&display=swap">
 <script>
-  // put the chosen skin on before anything is drawn, so it never flashes aqua
+  // put the chosen skin on before anything is drawn, so it never flashes acid
   try {
     const skin = localStorage.getItem("sonde-skin");
-    if (skin && skin !== "aqua") {
+    if (skin && skin !== "acid") {
       document.documentElement.dataset.skin = skin;
     }
   } catch {
@@ -27,114 +27,75 @@
 </script>
 <style>
   :root {
-    /* the room: plain black with neutral grey hairlines */
+    /* the room: black, bone and graphite. bone is the paper the stickers
+       are printed on */
     --black: #000;
-    --surface: #0c0c0c;
+    --surface: #111;
     --line: #262626;
-    --line-strong: #444;
-    --text: #e8e8e8;
-    --muted: #8f8f8f;
-    --faint: #7a7a7a;
+    --line-strong: #4d4d4a;
+    --text: #ecebe4;
+    --muted: #9a9a92;
+    --faint: #75756f;
 
-    /* the deck hardware. a skin swaps all of these: the display tube,
-       the indicator lamps, and the keys and knobs around them */
-    --vfd-rgb: 125 249 228;
+    /* the signal colour and the second accent. a skin swaps these */
+    --vfd-rgb: 212 255 42;
     --vfd: rgb(var(--vfd-rgb));
-    --vfd-bright: var(--vfd-bright);
-    --vfd-dim: #1d4a44;
-    --glass: #04110f;
-    --glass-edge: #0d2420;
-    --led-rgb: 255 138 61;
+    --vfd-bright: #f3ffc4;
+    --vfd-dim: #3a4510;
+    --glass: #000;
+    --glass-edge: #262626;
+    --led-rgb: 255 46 136;
     --led: rgb(var(--led-rgb));
-    --led-off: #4a3326;
-    --key-top: #2a3456;
-    --key-bottom: #1f2844;
-    --key-hover-top: #303b62;
-    --key-hover-bottom: #232d4c;
-    --key-edge: #33406a;
-    --key-shadow: var(--key-shadow);
-    --knob-face: #1a2036;
-    --knob-rim: #0c0f1c;
-    --knob-ridge: #3a4672;
-    --knob-groove: #151a2c;
-    --dimple-dark: #0b0e19;
-    --dimple-light: #222a45;
+    --led-off: #3a1527;
+
+    /* graphite hardware, the same under every skin */
+    --key-top: #000;
+    --key-bottom: #000;
+    --key-hover-top: #151515;
+    --key-hover-bottom: #151515;
+    --key-edge: #4d4d4a;
+    --key-shadow: #000;
+    --knob-face: #0c0c0c;
+    --knob-rim: #000;
+    --knob-ridge: #3d3d3a;
+    --knob-groove: #141414;
+    --dimple-dark: #050505;
+    --dimple-light: #1d1d1b;
 
     --deck-width: 360px;
     --chamfer: 18px;
     --mark: 10px;
-    --body-font: "Chakra Petch", "Bahnschrift", "DIN Alternate", "Segoe UI", system-ui, sans-serif;
-    --mark-font: "Michroma", "Eurostile", "Bank Gothic", var(--body-font);
+    --body-font: "Archivo", "Helvetica Neue", "Arial", system-ui, sans-serif;
+    --mark-font: "Archivo", "Helvetica Neue", "Arial Black", system-ui, sans-serif;
+    --micro-font: "Martian Mono", "SF Mono", "Consolas", ui-monospace, monospace;
     color-scheme: dark;
   }
 
-  /* amber gas plasma, like an old laptop screen, on smoked bronze keys */
-  :root[data-skin="amber"] {
-    --vfd-rgb: 255 166 54;
-    --vfd-bright: #fff3e0;
-    --vfd-dim: #4d3210;
-    --glass: #110902;
-    --glass-edge: #2a1806;
-    --led-rgb: 255 76 60;
-    --led-off: #4a1e1a;
-    --key-top: #3a3129;
-    --key-bottom: #2b241e;
-    --key-hover-top: #443a30;
-    --key-hover-bottom: #312922;
-    --key-edge: #574a3c;
-    --key-shadow: #100c08;
-    --knob-face: #26201b;
-    --knob-rim: #120e0b;
-    --knob-ridge: #5c4e40;
-    --knob-groove: #1d1814;
-    --dimple-dark: #0f0c09;
-    --dimple-light: #2f2822;
+  /* hot pink signal, acid lamps */
+  :root[data-skin="pink"] {
+    --vfd-rgb: 255 46 136;
+    --vfd-bright: #ffd6e8;
+    --vfd-dim: #4a1028;
+    --led-rgb: 212 255 42;
+    --led-off: #2e3810;
   }
 
-  /* green phosphor CRT on olive drab keys, like test gear */
-  :root[data-skin="green"] {
-    --vfd-rgb: 102 255 140;
-    --vfd-bright: #e8ffec;
-    --vfd-dim: #1a4a28;
-    --glass: #020e05;
-    --glass-edge: #0a2410;
-    --led-rgb: 255 200 64;
-    --led-off: #4a3c1a;
-    --key-top: #2f3a2b;
-    --key-bottom: #232b20;
-    --key-hover-top: #37452f;
-    --key-hover-bottom: #283224;
-    --key-edge: #46583f;
-    --key-shadow: #0a0f08;
-    --knob-face: #1c241a;
-    --knob-rim: #0c100a;
-    --knob-ridge: #4b5d44;
-    --knob-groove: #161d14;
-    --dimple-dark: #0a0d08;
-    --dimple-light: #283325;
+  /* ice cyan signal, orange lamps */
+  :root[data-skin="cyan"] {
+    --vfd-rgb: 61 240 255;
+    --vfd-bright: #d8fcff;
+    --vfd-dim: #0f3d44;
+    --led-rgb: 255 106 31;
+    --led-off: #3d1c0c;
   }
 
-  /* red LED segments on black anodised keys, like a 1980s hi-fi */
-  :root[data-skin="red"] {
-    --vfd-rgb: 255 76 76;
-    --vfd-bright: #ffe4e1;
-    --vfd-dim: #4d1717;
-    --glass: #110303;
-    --glass-edge: #2a0909;
-    --led-rgb: 255 214 92;
-    --led-off: #4a3f1c;
-    --key-top: #2c2c30;
-    --key-bottom: #1f1f22;
-    --key-hover-top: #35353a;
-    --key-hover-bottom: #252528;
-    --key-edge: #45454b;
-    --key-shadow: #09090a;
-    --knob-face: #1d1d20;
-    --knob-rim: #0c0c0d;
-    --knob-ridge: #4b4b51;
-    --knob-groove: #17171a;
-    --dimple-dark: #0b0b0c;
-    --dimple-light: #29292d;
+  /* signal orange, cyan lamps */
+  :root[data-skin="orange"] {
+    --vfd-rgb: 255 106 31;
+    --vfd-bright: #ffe0cf;
+    --vfd-dim: #4a1f08;
+    --led-rgb: 61 240 255;
+    --led-off: #0f3338;
   }
 
   * { box-sizing: border-box; }
@@ -945,7 +906,7 @@
     white-space: nowrap;
   }
 
-  /* the loaded song gets the amber lamp down its left edge */
+  /* the loaded song gets the lamp down its left edge */
   .song.active { background: rgb(var(--led-rgb) / 0.06); }
 
   .song.active::before {
@@ -1263,23 +1224,459 @@
     .pop { animation: none; }
     .wheel-readout { transition: none; }
   }
+
+  /* ==========================================================
+     graphic layer. the rules above lay the panels out; these dress
+     them as printed matter: flat colour, bone stickers, catalogue
+     codes, barcodes, pictograms and hazard stripes. nothing glows
+     ========================================================== */
+
+  .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+  /* a field of faint plus marks behind everything, like a cutting mat */
+  body {
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M14 11.5v5M11.5 14h5' stroke='%23292927' stroke-width='1'/%3E%3C/svg%3E") 0 0 / 28px 28px,
+      var(--black);
+    font-stretch: 100%;
+  }
+
+  /* small print: Martian Mono, set narrow and in capitals */
+  .micro {
+    font-family: var(--micro-font);
+    font-size: 9.5px;
+    font-variation-settings: "wdth" 87.5;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .icon {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    margin-right: 5px;
+    vertical-align: -1.5px;
+  }
+
+  /* bone stickers with black print, or in the signal colour */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    height: 16px;
+    padding: 0 5px;
+    background: var(--text);
+    color: var(--black);
+    font: 600 9.5px/1 var(--micro-font);
+    font-variation-settings: "wdth" 87.5;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .tag-signal { background: var(--vfd); }
+
+  .barcode { fill: currentColor; }
+
+  .hazard {
+    background: repeating-linear-gradient(-45deg, currentColor 0 3px, transparent 3px 7px);
+  }
+
+  /* ---------- masthead ---------- */
+
+  .ident { gap: 8px; }
+
+  .ident-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .wordmark {
+    font: 900 36px/0.85 var(--mark-font);
+    font-stretch: 125%;
+    letter-spacing: -0.02em;
+  }
+
+  .ident-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ident-meta .barcode {
+    width: 64px;
+    height: 12px;
+    color: var(--text);
+  }
+
+  .readout dd {
+    font-weight: 700;
+    font-size: 15px;
+    font-stretch: 110%;
+  }
+
+  /* the ruler ends in a strip of hazard stripes */
+  .ruler { position: relative; }
+
+  .ruler::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 2px;
+    width: 96px;
+    height: 7px;
+    background: repeating-linear-gradient(-45deg, var(--vfd) 0 3px, transparent 3px 7px);
+  }
+
+  /* ---------- deck ---------- */
+
+  .deck-inner, .library { background-color: var(--black); }
+
+  .spec .tag { margin-left: -1px; }
+
+  /* registration brackets, a crosshair, the catalogue code and a barcode
+     printed over the cover */
+  .cover-marks {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .bracket {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 0 solid var(--vfd);
+  }
+
+  .bracket.tl { top: 6px; left: 6px; border-top-width: 2px; border-left-width: 2px; }
+  .bracket.tr { top: 6px; right: 6px; border-top-width: 2px; border-right-width: 2px; }
+  .bracket.bl { bottom: 6px; left: 6px; border-bottom-width: 2px; border-left-width: 2px; }
+  .bracket.br { bottom: 6px; right: 6px; border-bottom-width: 2px; border-right-width: 2px; }
+
+  .cover-cross {
+    position: absolute;
+    top: 10px;
+    right: 28px;
+    width: 12px;
+    height: 12px;
+    color: var(--vfd);
+  }
+
+  .cover-code {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+  }
+
+  .cover-barcode {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    width: 62px;
+    height: 16px;
+    padding: 2px 4px;
+    background: var(--text);
+    color: var(--black);
+  }
+
+  .cover-blank {
+    color: var(--line-strong);
+    font: 900 clamp(48px, 10vw, 110px)/1 var(--mark-font);
+    font-stretch: 125%;
+  }
+
+  /* the readout: the one solid block of signal colour on the screen */
+  .vfd {
+    background: var(--black);
+    border: 1px solid var(--line-strong);
+    box-shadow: none;
+    color: var(--vfd);
+    text-shadow: none;
+  }
+
+  .vfd::after { display: none; }
+
+  .readout-block {
+    background: var(--vfd);
+    border-color: var(--vfd);
+    color: var(--black);
+  }
+
+  .readout-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgb(0 0 0 / 0.4);
+    color: var(--black);
+  }
+
+  .readout-block .vfd-title {
+    font-size: 25px;
+    font-weight: 850;
+    font-stretch: 112%;
+    letter-spacing: -0.015em;
+    line-height: 1.05;
+  }
+
+  .readout-block .vfd-artist {
+    margin-top: 2px;
+    font-weight: 600;
+    opacity: 1;
+  }
+
+  .readout-block .vfd-album { opacity: 0.65; }
+
+  .readout-block .vfd-time {
+    font: 500 11px/1 var(--micro-font);
+  }
+
+  /* on the block, the seek bar is printed in black */
+  .readout-block .seek::-webkit-slider-runnable-track {
+    background:
+      repeating-linear-gradient(90deg, transparent 0 5px, var(--vfd) 5px 7px),
+      linear-gradient(90deg, var(--black) var(--fill), rgb(0 0 0 / 0.2) var(--fill));
+    box-shadow: none;
+  }
+
+  .readout-block .seek::-moz-range-track {
+    background:
+      repeating-linear-gradient(90deg, transparent 0 5px, var(--vfd) 5px 7px),
+      linear-gradient(90deg, var(--black) var(--fill), rgb(0 0 0 / 0.2) var(--fill));
+    box-shadow: none;
+  }
+
+  .readout-block .seek::-webkit-slider-thumb { background: var(--black); box-shadow: none; }
+  .readout-block .seek::-moz-range-thumb { background: var(--black); box-shadow: none; }
+
+  /* keys: flat black with a graphite edge, printed bone when pressed */
+  .key {
+    background: var(--black);
+    border: 1px solid var(--key-edge);
+    box-shadow: none;
+  }
+
+  .key:hover { background: var(--surface); }
+
+  .key:active {
+    transform: none;
+    background: var(--text);
+    color: var(--black);
+    box-shadow: none;
+  }
+
+  .key:disabled:active { background: var(--black); color: var(--text); box-shadow: none; }
+
+  .key-play {
+    background: var(--vfd);
+    border-color: var(--vfd);
+    color: var(--black);
+  }
+
+  .key-play:hover { background: var(--vfd-bright); }
+  .key-play:disabled { background: var(--vfd-dim); border-color: var(--vfd-dim); }
+
+  .key .lamp { background: var(--line-strong); }
+
+  .key[aria-pressed="true"] .lamp,
+  body.playing .key-play .lamp {
+    background: var(--led);
+    box-shadow: none;
+  }
+
+  body.playing .key-play .lamp { background: var(--black); }
+
+  .key-small, .toggle-key, .skin { font: 600 9.5px/1 var(--micro-font); font-variation-settings: "wdth" 87.5; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  .skin[aria-checked="true"] { box-shadow: inset 0 0 0 1px var(--vfd); }
+  .swatch { box-shadow: none; }
+
+  /* the dial and the wheel: graphite knobs with a signal-coloured pointer */
+  .knob::before { box-shadow: none; }
+  .tick.lit { filter: none; }
+
+  .dial-hub {
+    background: var(--black);
+    box-shadow: 0 0 0 1px var(--line-strong);
+    color: var(--vfd);
+    text-shadow: none;
+    font: 700 12px/1 var(--micro-font);
+    text-transform: uppercase;
+  }
+
+  .dial-hub span.warn { text-shadow: none; font-family: var(--micro-font); font-size: 9px; }
+
+  .dial-legend { color: var(--muted); }
+
+  /* ---------- visualizer ---------- */
+
+  .spectrum { padding-top: 22px; }
+  .spectrum canvas { filter: none; }
+
+  /* its ID, printed in the corner */
+  .spectrum::before {
+    content: attr(data-tag);
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    color: var(--muted);
+    font: 500 9px/1 var(--micro-font);
+    font-variation-settings: "wdth" 87.5;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .spectrum-scale { color: var(--muted); opacity: 1; }
+
+  .spectrum-mode {
+    top: 4px;
+    background: var(--vfd);
+    color: var(--black);
+    font-weight: 600;
+  }
+
+  /* ---------- library ---------- */
+
+  .library-head h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font: 900 28px/1 var(--mark-font);
+    font-stretch: 125%;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .search input {
+    font-family: var(--body-font);
+    border-color: var(--line-strong);
+  }
+
+  .song-name { font-weight: 650; }
+
+  .ref {
+    font: 500 10px/1 var(--micro-font);
+    color: var(--muted);
+  }
+
+  .cell { font: 500 10px/1 var(--micro-font); }
+
+  /* the file type as a little outlined label */
+  .cell-format {
+    justify-self: end;
+    padding: 3px 4px;
+    border: 1px solid var(--line-strong);
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .song.active::before { box-shadow: none; }
+  .song.active .cell-format { border-color: var(--led); color: var(--led); }
+
+  .status dd { font-weight: 600; }
+
+  .index-end {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    color: var(--faint);
+  }
+
+  .index-end .hazard {
+    height: 8px;
+    color: var(--line-strong);
+  }
+
+  /* a small cover only has room for its brackets */
+  @container (max-height: 170px) {
+    .cover-code, .cover-barcode, .cover-cross { display: none; }
+  }
+
+  /* ---------- phones ---------- */
+
+  @media (max-width: 959px) {
+    .wordmark { font-size: 30px; }
+    .library-head h2 { font-size: 24px; }
+
+    .readout-block .vfd-title { font-size: 21px; }
+    .readout-head { margin-bottom: 6px; }
+
+    /* the deck's visualizer has no room for its ID */
+    .deck-inner .spectrum { padding-top: 6px; }
+    .deck-inner .spectrum::before { display: none; }
+
+    .deck-close {
+      font: 600 9.5px/1 var(--micro-font);
+      font-variation-settings: "wdth" 87.5;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .mini-progress { box-shadow: none; }
+
+    .minideck .vfd { border-color: var(--line-strong); }
+
+    .songs.drum .song::after { box-shadow: none; background: rgb(var(--vfd-rgb) / 0.08); }
+    .songs.drum .song .song-name { text-shadow: none; }
+
+    .wheel-hub {
+      background: var(--vfd);
+      box-shadow: 0 0 0 1px var(--black);
+      color: var(--black);
+      filter: none;
+    }
+
+    .wheel-hub:active { color: var(--black); background: var(--vfd-bright); }
+
+    /* the wheel's label is a bone sticker */
+    .wheel-readout {
+      background: var(--text);
+      border-color: var(--text);
+      color: var(--black);
+    }
+
+    .wheel-readout .micro { color: var(--black); opacity: 0.6; }
+  }
 </style>
 </head>
 <body>
 
+<svg class="sprite" aria-hidden="true">
+  <symbol id="i-note" viewBox="0 0 12 12"><path d="M4.5 9V2h6v6" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="1.5" y="7.5" width="3.5" height="3" fill="currentColor"/><rect x="7.5" y="6.5" width="3.5" height="3" fill="currentColor"/></symbol>
+  <symbol id="i-disc" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="5" y="5" width="2" height="2" fill="currentColor"/></symbol>
+  <symbol id="i-file" viewBox="0 0 12 12"><path d="M2.5 1.5h5l2.5 2.5v6.5h-7.5zM7.5 1.5V4H10" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-image" viewBox="0 0 12 12"><rect x="1.5" y="1.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 9l3-3.2 2.5 2.5 1.5-1.5 2 2" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="7" y="3.2" width="1.8" height="1.8" fill="currentColor"/></symbol>
+  <symbol id="i-drive" viewBox="0 0 12 12"><rect x="1" y="3" width="10" height="6" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="3" y="5.3" width="1.6" height="1.6" fill="currentColor"/><path d="M6 6.1h3" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-signal" viewBox="0 0 12 12"><rect x="1" y="8" width="2.4" height="3" fill="currentColor"/><rect x="4.8" y="5" width="2.4" height="6" fill="currentColor"/><rect x="8.6" y="1.5" width="2.4" height="9.5" fill="currentColor"/></symbol>
+  <symbol id="i-order" viewBox="0 0 12 12"><path d="M1 2.5h10M1 6h7M1 9.5h4" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-loop" viewBox="0 0 12 12"><path d="M1.5 6V3h8M8 1l2 2-2 2M10.5 6v3h-8M4 11L2 9l2-2" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-next" viewBox="0 0 12 12"><path d="M1 2l4.5 4L1 10zM6.5 2L11 6l-4.5 4z" fill="currentColor"/></symbol>
+  <symbol id="i-cross" viewBox="0 0 12 12"><circle cx="6" cy="6" r="3" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M6 0v12M0 6h12" stroke="currentColor" stroke-width="1.2"/></symbol>
+</svg>
+
 <header class="masthead">
   <div class="masthead-row">
     <div class="ident">
-      <h1 class="wordmark">SONDE</h1>
-      <span class="micro">Self-hosted music server</span>
+      <div class="ident-row">
+        <h1 class="wordmark">SONDE</h1>
+        <span class="tag tag-signal">SND/01</span>
+      </div>
+      <div class="ident-meta micro">
+        <svg class="barcode" id="mast-barcode" aria-hidden="true"></svg>
+        <span>Self-hosted music server</span>
+      </div>
     </div>
     <dl class="readout" id="readout">
-      <div><dt class="micro">Songs</dt><dd id="stat-songs">0</dd></div>
-      <div><dt class="micro">MP3</dt><dd id="stat-mp3">0</dd></div>
-      <div><dt class="micro">FLAC</dt><dd id="stat-flac">0</dd></div>
-      <div><dt class="micro">With covers</dt><dd id="stat-covers">0</dd></div>
-      <div><dt class="micro">Library size</dt><dd id="stat-size">0 MB</dd></div>
-      <div class="readout-address"><dt class="micro">Open on another device at</dt><dd id="stat-address"></dd></div>
+      <div><dt class="micro"><svg class="icon" aria-hidden="true"><use href="#i-note"/></svg>Songs</dt><dd id="stat-songs">0</dd></div>
+      <div><dt class="micro"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg>MP3</dt><dd id="stat-mp3">0</dd></div>
+      <div><dt class="micro"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg>FLAC</dt><dd id="stat-flac">0</dd></div>
+      <div><dt class="micro"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg>With covers</dt><dd id="stat-covers">0</dd></div>
+      <div><dt class="micro"><svg class="icon" aria-hidden="true"><use href="#i-drive"/></svg>Library size</dt><dd id="stat-size">0 MB</dd></div>
+      <div class="readout-address"><dt class="micro"><svg class="icon" aria-hidden="true"><use href="#i-signal"/></svg>Open on another device at</dt><dd id="stat-address"></dd></div>
     </dl>
   </div>
   <div class="ruler" aria-hidden="true"></div>
@@ -1315,10 +1712,10 @@
           <div class="setup-row">
             <span class="micro" id="skin-label">Display colour</span>
             <div class="skins" role="radiogroup" aria-labelledby="skin-label">
-              <button class="key key-small skin" type="button" role="radio" data-skin="aqua" style="--swatch: #7df9e4" aria-checked="true"><span class="swatch"></span>Aqua</button>
-              <button class="key key-small skin" type="button" role="radio" data-skin="amber" style="--swatch: #ffa636" aria-checked="false"><span class="swatch"></span>Amber</button>
-              <button class="key key-small skin" type="button" role="radio" data-skin="green" style="--swatch: #66ff8c" aria-checked="false"><span class="swatch"></span>Green</button>
-              <button class="key key-small skin" type="button" role="radio" data-skin="red" style="--swatch: #ff4c4c" aria-checked="false"><span class="swatch"></span>Red</button>
+              <button class="key key-small skin" type="button" role="radio" data-skin="acid" style="--swatch: #d4ff2a" aria-checked="true"><span class="swatch"></span>Acid</button>
+              <button class="key key-small skin" type="button" role="radio" data-skin="pink" style="--swatch: #ff2e88" aria-checked="false"><span class="swatch"></span>Pink</button>
+              <button class="key key-small skin" type="button" role="radio" data-skin="cyan" style="--swatch: #3df0ff" aria-checked="false"><span class="swatch"></span>Cyan</button>
+              <button class="key key-small skin" type="button" role="radio" data-skin="orange" style="--swatch: #ff6a1f" aria-checked="false"><span class="swatch"></span>Orange</button>
             </div>
           </div>
           <div class="setup-row">
@@ -1333,13 +1730,27 @@
       </div>
 
       <div class="spec micro">
-        <span>Now playing</span>
+        <span class="tag">Now playing</span>
         <span class="spec-values" id="spec"></span>
       </div>
 
-      <div class="cover-slot"><div class="cover" id="cover"></div></div>
+      <div class="cover-slot">
+        <div class="cover" id="cover">
+          <div class="cover-marks" id="cover-marks" aria-hidden="true">
+            <span class="bracket tl"></span><span class="bracket tr"></span><span class="bracket bl"></span><span class="bracket br"></span>
+            <svg class="cover-cross"><use href="#i-cross"/></svg>
+            <span class="tag cover-code" id="cover-code">SND-0000</span>
+            <svg class="barcode cover-barcode" id="cover-barcode"></svg>
+          </div>
+        </div>
+      </div>
 
-      <div class="vfd">
+      <div class="vfd readout-block">
+        <div class="readout-head micro" aria-hidden="true">
+          <span>CH-A</span>
+          <span>Playback</span>
+          <span id="readout-state">Standby</span>
+        </div>
         <div class="vfd-title" id="title">Ready</div>
         <div class="vfd-artist" id="artist">Pick a song from the library</div>
         <div class="vfd-album" id="album">&nbsp;</div>
@@ -1350,7 +1761,7 @@
         </div>
       </div>
 
-      <div class="spectrum vfd" id="deck-spectrum" role="button" tabindex="0" title="Change what the visualizer shows">
+      <div class="spectrum vfd" id="deck-spectrum" data-tag="A-01 / Signal" role="button" tabindex="0" title="Change what the visualizer shows">
         <canvas aria-hidden="true"></canvas>
         <div class="spectrum-scale micro" aria-hidden="true"></div>
         <span class="spectrum-mode micro" aria-hidden="true"></span>
@@ -1404,16 +1815,16 @@
       </div>
 
       <dl class="status">
-        <div><dt class="micro">Order</dt><dd id="status-order">In order</dd></div>
-        <div><dt class="micro">Repeat</dt><dd id="status-repeat">Off</dd></div>
-        <div><dt class="micro">Up next</dt><dd id="status-next">Nothing yet</dd></div>
+        <div><dt class="micro"><svg class="icon" aria-hidden="true"><use href="#i-order"/></svg>Order</dt><dd id="status-order">In order</dd></div>
+        <div><dt class="micro"><svg class="icon" aria-hidden="true"><use href="#i-loop"/></svg>Repeat</dt><dd id="status-repeat">Off</dd></div>
+        <div><dt class="micro"><svg class="icon" aria-hidden="true"><use href="#i-next"/></svg>Up next</dt><dd id="status-next">Nothing yet</dd></div>
       </dl>
     </div>
   </section>
 
   <main class="library marked">
     <div class="library-head">
-      <h2>Library</h2>
+      <h2><span class="tag tag-signal">02</span>Library</h2>
       <button class="key key-small toggle-key spectrum-toggle" type="button" aria-pressed="true" title="Show or hide the visualizer">
         <span class="lamp"></span>
         <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><path d="M0 6h2v4H0zM3 2h2v8H3zM6 4h2v6H6zM9 0h2v10H9zM12 5h2v5h-2z"/></svg>
@@ -1425,7 +1836,7 @@
       </label>
     </div>
 
-    <div class="spectrum vfd" id="library-spectrum" role="button" tabindex="0" title="Change what the visualizer shows">
+    <div class="spectrum vfd" id="library-spectrum" data-tag="A-02 / Signal" role="button" tabindex="0" title="Change what the visualizer shows">
       <canvas aria-hidden="true"></canvas>
       <div class="spectrum-scale micro" aria-hidden="true"></div>
       <span class="spectrum-mode micro" aria-hidden="true"></span>
@@ -1442,6 +1853,11 @@
     </div>
     <ol class="songs" id="songs"></ol>
     <div class="message" id="message" hidden></div>
+    <div class="index-end micro" aria-hidden="true">
+      <span>End of index</span>
+      <span class="hazard"></span>
+      <span id="index-count">000</span>
+    </div>
   </main>
 </div>
 
@@ -1546,6 +1962,53 @@ function coverElement(song) {
   return blank;
 }
 
+// a barcode drawn from text: the same title always gets the same bars
+function drawBarcode(svg, text) {
+  // FNV-1a hash of the text seeds a small xorshift generator
+  let seed = 2166136261;
+  for (const char of text) {
+    seed = Math.imul(seed ^ char.codePointAt(0), 16777619) >>> 0;
+  }
+  const next = () => {
+    seed ^= seed << 13;
+    seed ^= seed >>> 17;
+    seed ^= seed << 5;
+    seed >>>= 0;
+    return seed;
+  };
+
+  const bars = [];
+  let x = 0;
+  // guard bars at each end, like the real thing
+  for (const width of [1, 1]) {
+    bars.push(`<rect x="${x}" width="${width}" height="10"/>`);
+    x += width + 1;
+  }
+  while (x < 58) {
+    const width = 1 + (next() % 3);
+    bars.push(`<rect x="${x}" width="${width}" height="10"/>`);
+    x += width + 1 + (next() % 2);
+  }
+  for (const width of [1, 1]) {
+    bars.push(`<rect x="${x}" width="${width}" height="10"/>`);
+    x += width + 1;
+  }
+
+  svg.setAttribute("viewBox", `0 0 ${x - 1} 10`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.innerHTML = bars.join("");
+}
+
+// a catalogue code for a song: its place in the library and a check letter
+function songCode(song) {
+  const index = songs.indexOf(song);
+  let sum = 0;
+  for (const char of song.file) {
+    sum = (sum + char.codePointAt(0)) % 26;
+  }
+  return `SND-${String(index + 1).padStart(4, "0")}-${String.fromCharCode(65 + sum)}`;
+}
+
 function albumLine(song) {
   if (song.album && song.year) {
     return `${song.album} (${song.year})`;
@@ -1604,7 +2067,7 @@ function renderSongs() {
       text,
       cell("song-album col-album", song.album),
       cell("cell col-year", song.year),
-      cell("cell", song.format),
+      cell("cell cell-format", song.format),
       cell("cell col-size", formatSize(song.size)),
     );
 
@@ -1625,6 +2088,7 @@ function renderSongs() {
 function renderReadout() {
   const count = (format) => songs.filter((song) => song.format === format).length;
 
+  $("index-count").textContent = `${String(songs.length).padStart(3, "0")} entries`;
   $("stat-songs").textContent = songs.length;
   $("stat-mp3").textContent = count("MP3");
   $("stat-flac").textContent = count("FLAC");
@@ -1693,7 +2157,10 @@ function updateStatus() {
 }
 
 function showNowPlaying(song) {
-  $("cover").replaceChildren(coverElement(song));
+  // the overlay of marks stays on top of whatever cover goes in
+  $("cover").replaceChildren(coverElement(song), $("cover-marks"));
+  $("cover-code").textContent = songCode(song);
+  drawBarcode($("cover-barcode"), song.title);
   $("mini-cover").replaceChildren(coverElement(song));
   $("title").textContent = song.title;
   $("mini-title").textContent = song.title;
@@ -1874,6 +2341,7 @@ function togglePlay() {
 function updatePlayState() {
   // it counts as stopped the moment it starts winding down
   const playing = !audio.paused && !tapeStopping;
+  $("readout-state").textContent = current < 0 ? "Standby" : playing ? "Playing" : "Paused";
   document.body.classList.toggle("playing", playing);
 
   for (const key of [$("play"), $("mini-play")]) {
@@ -3099,13 +3567,13 @@ for (const key of document.querySelectorAll(".spectrum-toggle")) {
 
 // ---------- setup: skins and the tape deck ----------
 
-const SKINS = ["aqua", "amber", "green", "red"];
+const SKINS = ["acid", "pink", "cyan", "orange"];
 
 function setSkin(skin) {
   if (!SKINS.includes(skin)) {
-    skin = "aqua";
+    skin = "acid";
   }
-  if (skin === "aqua") {
+  if (skin === "acid") {
     delete document.documentElement.dataset.skin;
   } else {
     document.documentElement.dataset.skin = skin;
@@ -3458,7 +3926,7 @@ $("clicks").setAttribute("aria-pressed", clicks.on);
 deckDial.setValue(0, false);
 setDialShown(loadSetting("sonde-dial", "shown") === "shown");
 wheel.setValue(0, false);
-setSkin(loadSetting("sonde-skin", "aqua"));
+setSkin(loadSetting("sonde-skin", "acid"));
 setTapeOn(tapeOn);
 setSetupOpen(false);
 for (const panel of spectrumPanels) {
@@ -3467,7 +3935,9 @@ for (const panel of spectrumPanels) {
 setSpectrumShown(spectrumShown);
 
 $("stat-address").textContent = location.host;
-$("cover").append(coverElement(null));
+$("cover").prepend(coverElement(null));
+drawBarcode($("cover-barcode"), "SONDE");
+drawBarcode($("mast-barcode"), "Sonde self-hosted music server");
 $("mini-cover").append(coverElement(null));
 loadSongs();
 
