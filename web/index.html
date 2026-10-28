@@ -13,16 +13,20 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M0 0h26l6 6v26H6l-6-6z' fill='%23000'/%3E%3Cpath d='M8 21v-8M13 24V8M18 21v-8M23 18v-2' stroke='%237df9e4' stroke-width='2.5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Martian+Mono:wdth,wght@75..112.5,100..800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Martian+Mono:wdth,wght@75..112.5,100..800&family=Chakra+Petch:wght@400;500;600&family=Michroma&display=swap">
 <script>
-  // put the chosen skin on before anything is drawn, so it never flashes acid
+  // put the chosen style and skin on before anything is drawn, so the
+  // page never flashes the defaults
+  document.documentElement.dataset.style = "graphic";
   try {
-    const skin = localStorage.getItem("sonde-skin");
-    if (skin && skin !== "acid") {
+    const style = localStorage.getItem("sonde-style") === "hifi" ? "hifi" : "graphic";
+    const skin = localStorage.getItem(`sonde-skin-${style}`);
+    document.documentElement.dataset.style = style;
+    if (skin) {
       document.documentElement.dataset.skin = skin;
     }
   } catch {
-    // no storage, default skin
+    // no storage, default style and skin
   }
 </script>
 <style>
@@ -72,7 +76,7 @@
   }
 
   /* hot pink signal, acid lamps */
-  :root[data-skin="pink"] {
+  :root:not([data-style="hifi"])[data-skin="pink"] {
     --vfd-rgb: 255 46 136;
     --vfd-bright: #ffd6e8;
     --vfd-dim: #4a1028;
@@ -81,7 +85,7 @@
   }
 
   /* ice cyan signal, orange lamps */
-  :root[data-skin="cyan"] {
+  :root:not([data-style="hifi"])[data-skin="cyan"] {
     --vfd-rgb: 61 240 255;
     --vfd-bright: #d8fcff;
     --vfd-dim: #0f3d44;
@@ -89,8 +93,123 @@
     --led-off: #3d1c0c;
   }
 
+  /* ---------- hi-fi style: the original VFD deck ---------- */
+
+  :root[data-style="hifi"] {
+    --surface: #0c0c0c;
+    --line: #262626;
+    --line-strong: #444;
+    --text: #e8e8e8;
+    --muted: #8f8f8f;
+    --faint: #7a7a7a;
+
+    /* the display tube, its lamps, and the keys and knobs around them */
+    --vfd-rgb: 125 249 228;
+    --vfd-bright: #e9fffb;
+    --vfd-dim: #1d4a44;
+    --glass: #04110f;
+    --glass-edge: #0d2420;
+    --led-rgb: 255 138 61;
+    --led-off: #4a3326;
+    --key-top: #2a3456;
+    --key-bottom: #1f2844;
+    --key-hover-top: #303b62;
+    --key-hover-bottom: #232d4c;
+    --key-edge: #33406a;
+    --key-shadow: #0a0e1b;
+    --knob-face: #1a2036;
+    --knob-rim: #0c0f1c;
+    --knob-ridge: #3a4672;
+    --knob-groove: #151a2c;
+    --dimple-dark: #0b0e19;
+    --dimple-light: #222a45;
+
+    --body-font: "Chakra Petch", "Bahnschrift", "DIN Alternate", "Segoe UI", system-ui, sans-serif;
+    --mark-font: "Michroma", "Eurostile", "Bank Gothic", var(--body-font);
+  }
+
+  /* amber gas plasma, like an old laptop screen, on smoked bronze keys */
+  :root[data-style="hifi"][data-skin="amber"] {
+    --vfd-rgb: 255 166 54;
+    --vfd-bright: #fff3e0;
+    --vfd-dim: #4d3210;
+    --glass: #110902;
+    --glass-edge: #2a1806;
+    --led-rgb: 255 76 60;
+    --led-off: #4a1e1a;
+    --key-top: #3a3129;
+    --key-bottom: #2b241e;
+    --key-hover-top: #443a30;
+    --key-hover-bottom: #312922;
+    --key-edge: #574a3c;
+    --key-shadow: #100c08;
+    --knob-face: #26201b;
+    --knob-rim: #120e0b;
+    --knob-ridge: #5c4e40;
+    --knob-groove: #1d1814;
+    --dimple-dark: #0f0c09;
+    --dimple-light: #2f2822;
+  }
+
+  /* green phosphor CRT on olive drab keys, like test gear */
+  :root[data-style="hifi"][data-skin="green"] {
+    --vfd-rgb: 102 255 140;
+    --vfd-bright: #e8ffec;
+    --vfd-dim: #1a4a28;
+    --glass: #020e05;
+    --glass-edge: #0a2410;
+    --led-rgb: 255 200 64;
+    --led-off: #4a3c1a;
+    --key-top: #2f3a2b;
+    --key-bottom: #232b20;
+    --key-hover-top: #37452f;
+    --key-hover-bottom: #283224;
+    --key-edge: #46583f;
+    --key-shadow: #0a0f08;
+    --knob-face: #1c241a;
+    --knob-rim: #0c100a;
+    --knob-ridge: #4b5d44;
+    --knob-groove: #161d14;
+    --dimple-dark: #0a0d08;
+    --dimple-light: #283325;
+  }
+
+  /* red LED segments on black anodised keys, like a 1980s hi-fi */
+  :root[data-style="hifi"][data-skin="red"] {
+    --vfd-rgb: 255 76 76;
+    --vfd-bright: #ffe4e1;
+    --vfd-dim: #4d1717;
+    --glass: #110303;
+    --glass-edge: #2a0909;
+    --led-rgb: 255 214 92;
+    --led-off: #4a3f1c;
+    --key-top: #2c2c30;
+    --key-bottom: #1f1f22;
+    --key-hover-top: #35353a;
+    --key-hover-bottom: #252528;
+    --key-edge: #45454b;
+    --key-shadow: #09090a;
+    --knob-face: #1d1d20;
+    --knob-rim: #0c0c0d;
+    --knob-ridge: #4b4b51;
+    --knob-groove: #17171a;
+    --dimple-dark: #0b0b0c;
+    --dimple-light: #29292d;
+  }
+
+  /* the graphic style's stickers, codes and marks have no place on the deck */
+  :root[data-style="hifi"] :is(.icon, .tag-signal, .cover-marks, .readout-head, .ident-meta .barcode, .index-end) {
+    display: none;
+  }
+
+  /* each style shows its own four colours */
+  :root[data-style="hifi"] .skin[data-for="graphic"],
+  :root:not([data-style="hifi"]) .skin[data-for="hifi"] {
+    display: none;
+  }
+
   /* signal orange, cyan lamps */
-  :root[data-skin="orange"] {
+  :root:not([data-style="hifi"])[data-skin="orange"] {
     --vfd-rgb: 255 106 31;
     --vfd-bright: #ffe0cf;
     --vfd-dim: #4a1f08;
@@ -715,6 +834,15 @@
     gap: 6px;
   }
 
+  .styles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .style-key { height: 32px; }
+  .style-key[aria-checked="true"] { color: var(--text); box-shadow: inset 0 0 0 1px var(--vfd), 0 3px 0 var(--key-shadow); }
+
   .skin {
     display: flex;
     align-items: center;
@@ -1225,421 +1353,430 @@
     .wheel-readout { transition: none; }
   }
 
-  /* ==========================================================
-     graphic layer. the rules above lay the panels out; these dress
-     them as printed matter: flat colour, bone stickers, catalogue
-     codes, barcodes, pictograms and hazard stripes. nothing glows
-     ========================================================== */
-
+  /* the icon sprite is only a source of symbols, in either style */
   .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 
-  /* a field of faint plus marks behind everything, like a cutting mat */
-  body {
-    background:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M14 11.5v5M11.5 14h5' stroke='%23292927' stroke-width='1'/%3E%3C/svg%3E") 0 0 / 28px 28px,
-      var(--black);
-    font-stretch: 100%;
-  }
-
-  /* small print: Martian Mono, set narrow and in capitals */
-  .micro {
-    font-family: var(--micro-font);
-    font-size: 9.5px;
-    font-variation-settings: "wdth" 87.5;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  .icon {
-    display: inline-block;
-    width: 11px;
-    height: 11px;
-    margin-right: 5px;
-    vertical-align: -1.5px;
-  }
-
-  /* bone stickers with black print, or in the signal colour */
-  .tag {
-    display: inline-flex;
-    align-items: center;
-    height: 16px;
-    padding: 0 5px;
-    background: var(--text);
-    color: var(--black);
-    font: 600 9.5px/1 var(--micro-font);
-    font-variation-settings: "wdth" 87.5;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  .tag-signal { background: var(--vfd); }
-
-  .barcode { fill: currentColor; }
-
-  .hazard {
-    background: repeating-linear-gradient(-45deg, currentColor 0 3px, transparent 3px 7px);
-  }
-
-  /* ---------- masthead ---------- */
-
-  .ident { gap: 8px; }
-
-  .ident-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .wordmark {
-    font: 900 36px/0.85 var(--mark-font);
-    font-stretch: 125%;
-    letter-spacing: -0.02em;
-  }
-
-  .ident-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .ident-meta .barcode {
-    width: 64px;
-    height: 12px;
-    color: var(--text);
-  }
-
-  .readout dd {
-    font-weight: 700;
-    font-size: 15px;
-    font-stretch: 110%;
-  }
-
-  /* the ruler ends in a strip of hazard stripes */
-  .ruler { position: relative; }
-
-  .ruler::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    top: 2px;
-    width: 96px;
-    height: 7px;
-    background: repeating-linear-gradient(-45deg, var(--vfd) 0 3px, transparent 3px 7px);
-  }
-
-  /* ---------- deck ---------- */
-
-  .deck-inner, .library { background-color: var(--black); }
-
-  .spec .tag { margin-left: -1px; }
-
-  /* registration brackets, a crosshair, the catalogue code and a barcode
-     printed over the cover */
-  .cover-marks {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-  }
-
-  .bracket {
-    position: absolute;
-    width: 14px;
-    height: 14px;
-    border: 0 solid var(--vfd);
-  }
-
-  .bracket.tl { top: 6px; left: 6px; border-top-width: 2px; border-left-width: 2px; }
-  .bracket.tr { top: 6px; right: 6px; border-top-width: 2px; border-right-width: 2px; }
-  .bracket.bl { bottom: 6px; left: 6px; border-bottom-width: 2px; border-left-width: 2px; }
-  .bracket.br { bottom: 6px; right: 6px; border-bottom-width: 2px; border-right-width: 2px; }
-
-  .cover-cross {
-    position: absolute;
-    top: 10px;
-    right: 28px;
-    width: 12px;
-    height: 12px;
-    color: var(--vfd);
-  }
-
-  .cover-code {
-    position: absolute;
-    left: 12px;
-    bottom: 12px;
-  }
-
-  .cover-barcode {
-    position: absolute;
-    right: 12px;
-    bottom: 12px;
-    width: 62px;
-    height: 16px;
-    padding: 2px 4px;
-    background: var(--text);
-    color: var(--black);
-  }
-
-  .cover-blank {
-    color: var(--line-strong);
-    font: 900 clamp(48px, 10vw, 110px)/1 var(--mark-font);
-    font-stretch: 125%;
-  }
-
-  /* the readout: the one solid block of signal colour on the screen */
-  .vfd {
-    background: var(--black);
-    border: 1px solid var(--line-strong);
-    box-shadow: none;
-    color: var(--vfd);
-    text-shadow: none;
-  }
-
-  .vfd::after { display: none; }
-
-  .readout-block {
-    background: var(--vfd);
-    border-color: var(--vfd);
-    color: var(--black);
-  }
-
-  .readout-head {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid rgb(0 0 0 / 0.4);
-    color: var(--black);
-  }
-
-  .readout-block .vfd-title {
-    font-size: 25px;
-    font-weight: 850;
-    font-stretch: 112%;
-    letter-spacing: -0.015em;
-    line-height: 1.05;
-  }
-
-  .readout-block .vfd-artist {
-    margin-top: 2px;
-    font-weight: 600;
-    opacity: 1;
-  }
-
-  .readout-block .vfd-album { opacity: 0.65; }
-
-  .readout-block .vfd-time {
-    font: 500 11px/1 var(--micro-font);
-  }
-
-  /* on the block, the seek bar is printed in black */
-  .readout-block .seek::-webkit-slider-runnable-track {
-    background:
-      repeating-linear-gradient(90deg, transparent 0 5px, var(--vfd) 5px 7px),
-      linear-gradient(90deg, var(--black) var(--fill), rgb(0 0 0 / 0.2) var(--fill));
-    box-shadow: none;
-  }
-
-  .readout-block .seek::-moz-range-track {
-    background:
-      repeating-linear-gradient(90deg, transparent 0 5px, var(--vfd) 5px 7px),
-      linear-gradient(90deg, var(--black) var(--fill), rgb(0 0 0 / 0.2) var(--fill));
-    box-shadow: none;
-  }
-
-  .readout-block .seek::-webkit-slider-thumb { background: var(--black); box-shadow: none; }
-  .readout-block .seek::-moz-range-thumb { background: var(--black); box-shadow: none; }
-
-  /* keys: flat black with a graphite edge, printed bone when pressed */
-  .key {
-    background: var(--black);
-    border: 1px solid var(--key-edge);
-    box-shadow: none;
-  }
-
-  .key:hover { background: var(--surface); }
-
-  .key:active {
-    transform: none;
-    background: var(--text);
-    color: var(--black);
-    box-shadow: none;
-  }
-
-  .key:disabled:active { background: var(--black); color: var(--text); box-shadow: none; }
-
-  .key-play {
-    background: var(--vfd);
-    border-color: var(--vfd);
-    color: var(--black);
-  }
-
-  .key-play:hover { background: var(--vfd-bright); }
-  .key-play:disabled { background: var(--vfd-dim); border-color: var(--vfd-dim); }
-
-  .key .lamp { background: var(--line-strong); }
-
-  .key[aria-pressed="true"] .lamp,
-  body.playing .key-play .lamp {
-    background: var(--led);
-    box-shadow: none;
-  }
-
-  body.playing .key-play .lamp { background: var(--black); }
-
-  .key-small, .toggle-key, .skin { font: 600 9.5px/1 var(--micro-font); font-variation-settings: "wdth" 87.5; letter-spacing: 0.05em; text-transform: uppercase; }
-
-  .skin[aria-checked="true"] { box-shadow: inset 0 0 0 1px var(--vfd); }
-  .swatch { box-shadow: none; }
-
-  /* the dial and the wheel: graphite knobs with a signal-coloured pointer */
-  .knob::before { box-shadow: none; }
-  .tick.lit { filter: none; }
-
-  .dial-hub {
-    background: var(--black);
-    box-shadow: 0 0 0 1px var(--line-strong);
-    color: var(--vfd);
-    text-shadow: none;
-    font: 700 12px/1 var(--micro-font);
-    text-transform: uppercase;
-  }
-
-  .dial-hub span.warn { text-shadow: none; font-family: var(--micro-font); font-size: 9px; }
-
-  .dial-legend { color: var(--muted); }
-
-  /* ---------- visualizer ---------- */
-
-  .spectrum { padding-top: 22px; }
-  .spectrum canvas { filter: none; }
-
-  /* its ID, printed in the corner */
-  .spectrum::before {
-    content: attr(data-tag);
-    position: absolute;
-    top: 6px;
-    left: 8px;
-    color: var(--muted);
-    font: 500 9px/1 var(--micro-font);
-    font-variation-settings: "wdth" 87.5;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  .spectrum-scale { color: var(--muted); opacity: 1; }
-
-  .spectrum-mode {
-    top: 4px;
-    background: var(--vfd);
-    color: var(--black);
-    font-weight: 600;
-  }
-
-  /* ---------- library ---------- */
-
-  .library-head h2 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font: 900 28px/1 var(--mark-font);
-    font-stretch: 125%;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-  }
-
-  .search input {
-    font-family: var(--body-font);
-    border-color: var(--line-strong);
-  }
-
-  .song-name { font-weight: 650; }
-
-  .ref {
-    font: 500 10px/1 var(--micro-font);
-    color: var(--muted);
-  }
-
-  .cell { font: 500 10px/1 var(--micro-font); }
-
-  /* the file type as a little outlined label */
-  .cell-format {
-    justify-self: end;
-    padding: 3px 4px;
-    border: 1px solid var(--line-strong);
-    color: var(--muted);
-    font-weight: 600;
-  }
-
-  .song.active::before { box-shadow: none; }
-  .song.active .cell-format { border-color: var(--led); color: var(--led); }
-
-  .status dd { font-weight: 600; }
-
-  .index-end {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 10px;
-    margin-top: 16px;
-    color: var(--faint);
-  }
-
-  .index-end .hazard {
-    height: 8px;
-    color: var(--line-strong);
-  }
-
-  /* a small cover only has room for its brackets */
-  @container (max-height: 170px) {
-    .cover-code, .cover-barcode, .cover-cross { display: none; }
-  }
-
-  /* ---------- phones ---------- */
-
-  @media (max-width: 959px) {
-    .wordmark { font-size: 30px; }
-    .library-head h2 { font-size: 24px; }
-
-    .readout-block .vfd-title { font-size: 21px; }
-    .readout-head { margin-bottom: 6px; }
-
-    /* the deck's visualizer has no room for its ID */
-    .deck-inner .spectrum { padding-top: 6px; }
-    .deck-inner .spectrum::before { display: none; }
-
-    .deck-close {
-      font: 600 9.5px/1 var(--micro-font);
+  /* everything below is the graphic style, nested so the hi-fi style
+     never sees it */
+  :root:not([data-style="hifi"]) {
+    /* ==========================================================
+       graphic layer. the rules above lay the panels out; these dress
+       them as printed matter: flat colour, bone stickers, catalogue
+       codes, barcodes, pictograms and hazard stripes. nothing glows
+       ========================================================== */
+
+    /* a field of faint plus marks behind everything, like a cutting mat */
+    & body {
+      background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M14 11.5v5M11.5 14h5' stroke='%23292927' stroke-width='1'/%3E%3C/svg%3E") 0 0 / 28px 28px,
+        var(--black);
+      font-stretch: 100%;
+    }
+
+    /* small print: Martian Mono, set narrow and in capitals */
+    .micro {
+      font-family: var(--micro-font);
+      font-size: 9.5px;
       font-variation-settings: "wdth" 87.5;
       letter-spacing: 0.05em;
       text-transform: uppercase;
     }
 
-    .mini-progress { box-shadow: none; }
-
-    .minideck .vfd { border-color: var(--line-strong); }
-
-    .songs.drum .song::after { box-shadow: none; background: rgb(var(--vfd-rgb) / 0.08); }
-    .songs.drum .song .song-name { text-shadow: none; }
-
-    .wheel-hub {
-      background: var(--vfd);
-      box-shadow: 0 0 0 1px var(--black);
-      color: var(--black);
-      filter: none;
+    .icon {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      margin-right: 5px;
+      vertical-align: -1.5px;
     }
 
-    .wheel-hub:active { color: var(--black); background: var(--vfd-bright); }
-
-    /* the wheel's label is a bone sticker */
-    .wheel-readout {
+    /* bone stickers with black print, or in the signal colour */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: 16px;
+      padding: 0 5px;
       background: var(--text);
-      border-color: var(--text);
+      color: var(--black);
+      font: 600 9.5px/1 var(--micro-font);
+      font-variation-settings: "wdth" 87.5;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .tag-signal { background: var(--vfd); }
+
+    .barcode { fill: currentColor; }
+
+    .hazard {
+      background: repeating-linear-gradient(-45deg, currentColor 0 3px, transparent 3px 7px);
+    }
+
+    /* ---------- masthead ---------- */
+
+    .ident { gap: 8px; }
+
+    .ident-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .wordmark {
+      font: 900 36px/0.85 var(--mark-font);
+      font-stretch: 125%;
+      letter-spacing: -0.02em;
+    }
+
+    .ident-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ident-meta .barcode {
+      width: 64px;
+      height: 12px;
+      color: var(--text);
+    }
+
+    .readout dd {
+      font-weight: 700;
+      font-size: 15px;
+      font-stretch: 110%;
+    }
+
+    /* the ruler ends in a strip of hazard stripes */
+    .ruler { position: relative; }
+
+    .ruler::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 2px;
+      width: 96px;
+      height: 7px;
+      background: repeating-linear-gradient(-45deg, var(--vfd) 0 3px, transparent 3px 7px);
+    }
+
+    /* ---------- deck ---------- */
+
+    .deck-inner, .library { background-color: var(--black); }
+
+    .spec .tag { margin-left: -1px; }
+
+    /* registration brackets, a crosshair, the catalogue code and a barcode
+       printed over the cover */
+    .cover-marks {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .bracket {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border: 0 solid var(--vfd);
+    }
+
+    .bracket.tl { top: 6px; left: 6px; border-top-width: 2px; border-left-width: 2px; }
+    .bracket.tr { top: 6px; right: 6px; border-top-width: 2px; border-right-width: 2px; }
+    .bracket.bl { bottom: 6px; left: 6px; border-bottom-width: 2px; border-left-width: 2px; }
+    .bracket.br { bottom: 6px; right: 6px; border-bottom-width: 2px; border-right-width: 2px; }
+
+    .cover-cross {
+      position: absolute;
+      top: 10px;
+      right: 28px;
+      width: 12px;
+      height: 12px;
+      color: var(--vfd);
+    }
+
+    .cover-code {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+    }
+
+    .cover-barcode {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      width: 62px;
+      height: 16px;
+      padding: 2px 4px;
+      background: var(--text);
       color: var(--black);
     }
 
-    .wheel-readout .micro { color: var(--black); opacity: 0.6; }
+    .cover-blank {
+      color: var(--line-strong);
+      font: 900 clamp(48px, 10vw, 110px)/1 var(--mark-font);
+      font-stretch: 125%;
+    }
+
+    /* the readout: the one solid block of signal colour on the screen */
+    .vfd {
+      background: var(--black);
+      border: 1px solid var(--line-strong);
+      box-shadow: none;
+      color: var(--vfd);
+      text-shadow: none;
+    }
+
+    .vfd::after { display: none; }
+
+    .readout-block {
+      background: var(--vfd);
+      border-color: var(--vfd);
+      color: var(--black);
+    }
+
+    .readout-head {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgb(0 0 0 / 0.4);
+      color: var(--black);
+    }
+
+    .readout-block .vfd-title {
+      font-size: 25px;
+      font-weight: 850;
+      font-stretch: 112%;
+      letter-spacing: -0.015em;
+      line-height: 1.05;
+    }
+
+    .readout-block .vfd-artist {
+      margin-top: 2px;
+      font-weight: 600;
+      opacity: 1;
+    }
+
+    .readout-block .vfd-album { opacity: 0.65; }
+
+    .readout-block .vfd-time {
+      font: 500 11px/1 var(--micro-font);
+    }
+
+    /* on the block, the seek bar is printed in black */
+    .readout-block .seek::-webkit-slider-runnable-track {
+      background:
+        repeating-linear-gradient(90deg, transparent 0 5px, var(--vfd) 5px 7px),
+        linear-gradient(90deg, var(--black) var(--fill), rgb(0 0 0 / 0.2) var(--fill));
+      box-shadow: none;
+    }
+
+    .readout-block .seek::-moz-range-track {
+      background:
+        repeating-linear-gradient(90deg, transparent 0 5px, var(--vfd) 5px 7px),
+        linear-gradient(90deg, var(--black) var(--fill), rgb(0 0 0 / 0.2) var(--fill));
+      box-shadow: none;
+    }
+
+    .readout-block .seek::-webkit-slider-thumb { background: var(--black); box-shadow: none; }
+    .readout-block .seek::-moz-range-thumb { background: var(--black); box-shadow: none; }
+
+    /* keys: flat black with a graphite edge, printed bone when pressed */
+    .key {
+      background: var(--black);
+      border: 1px solid var(--key-edge);
+      box-shadow: none;
+    }
+
+    .key:hover { background: var(--surface); }
+
+    .key:active {
+      transform: none;
+      background: var(--text);
+      color: var(--black);
+      box-shadow: none;
+    }
+
+    .key:disabled:active { background: var(--black); color: var(--text); box-shadow: none; }
+
+    .key-play {
+      background: var(--vfd);
+      border-color: var(--vfd);
+      color: var(--black);
+    }
+
+    .key-play:hover { background: var(--vfd-bright); }
+    .key-play:disabled { background: var(--vfd-dim); border-color: var(--vfd-dim); }
+
+    .key .lamp { background: var(--line-strong); }
+
+    .key[aria-pressed="true"] .lamp,
+    body.playing .key-play .lamp {
+      background: var(--led);
+      box-shadow: none;
+    }
+
+    body.playing .key-play .lamp { background: var(--black); }
+
+    .key-small, .toggle-key, .skin, .style-key { font: 600 9.5px/1 var(--micro-font); font-variation-settings: "wdth" 87.5; letter-spacing: 0.05em; text-transform: uppercase; }
+
+    :is(.skin, .style-key)[aria-checked="true"] { box-shadow: inset 0 0 0 1px var(--vfd); }
+    .swatch { box-shadow: none; }
+
+    /* the dial and the wheel: graphite knobs with a signal-coloured pointer */
+    .knob::before { box-shadow: none; }
+    .tick.lit { filter: none; }
+
+    .dial-hub {
+      background: var(--black);
+      box-shadow: 0 0 0 1px var(--line-strong);
+      color: var(--vfd);
+      text-shadow: none;
+      font: 700 12px/1 var(--micro-font);
+      text-transform: uppercase;
+    }
+
+    .dial-hub span.warn { text-shadow: none; font-family: var(--micro-font); font-size: 9px; }
+
+    .dial-legend { color: var(--muted); }
+
+    /* ---------- visualizer ---------- */
+
+    .spectrum { padding-top: 22px; }
+    .spectrum canvas { filter: none; }
+
+    /* its ID, printed in the corner */
+    .spectrum::before {
+      content: attr(data-tag);
+      position: absolute;
+      top: 6px;
+      left: 8px;
+      color: var(--muted);
+      font: 500 9px/1 var(--micro-font);
+      font-variation-settings: "wdth" 87.5;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .spectrum-scale { color: var(--muted); opacity: 1; }
+
+    .spectrum-mode {
+      top: 4px;
+      background: var(--vfd);
+      color: var(--black);
+      font-weight: 600;
+    }
+
+    /* ---------- library ---------- */
+
+    .library-head h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font: 900 28px/1 var(--mark-font);
+      font-stretch: 125%;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    .search input {
+      font-family: var(--body-font);
+      border-color: var(--line-strong);
+    }
+
+    .song-name { font-weight: 650; }
+
+    .ref {
+      font: 500 10px/1 var(--micro-font);
+      color: var(--muted);
+    }
+
+    .cell { font: 500 10px/1 var(--micro-font); }
+
+    /* the file type as a little outlined label */
+    .cell-format {
+      justify-self: end;
+      padding: 3px 4px;
+      border: 1px solid var(--line-strong);
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .song.active::before { box-shadow: none; }
+    .song.active .cell-format { border-color: var(--led); color: var(--led); }
+
+    .status dd { font-weight: 600; }
+
+    .index-end {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+      color: var(--faint);
+    }
+
+    .index-end .hazard {
+      height: 8px;
+      color: var(--line-strong);
+    }
+
+    /* a small cover only has room for its brackets */
+    @container (max-height: 170px) {
+      .cover-code, .cover-barcode, .cover-cross { display: none; }
+    }
+
+    /* ---------- phones ---------- */
+
+    @media (max-width: 959px) {
+      .wordmark { font-size: 30px; }
+      .library-head h2 { font-size: 24px; }
+
+      .readout-block .vfd-title { font-size: 21px; }
+      .readout-head { margin-bottom: 6px; }
+
+      /* the deck's visualizer has no room for its ID */
+      .deck-inner .spectrum { padding-top: 6px; }
+      .deck-inner .spectrum::before { display: none; }
+
+      /* capitals in mono run wider, so the top row's keys sit tighter */
+      .deck-top .toggle-key { padding: 0 15px 0 8px; gap: 5px; }
+      .deck-top .toggle-key .lamp { right: 5px; }
+
+      .deck-close {
+        font: 600 9.5px/1 var(--micro-font);
+        font-variation-settings: "wdth" 87.5;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .mini-progress { box-shadow: none; }
+
+      .minideck .vfd { border-color: var(--line-strong); }
+
+      .songs.drum .song::after { box-shadow: none; background: rgb(var(--vfd-rgb) / 0.08); }
+      .songs.drum .song .song-name { text-shadow: none; }
+
+      .wheel-hub {
+        background: var(--vfd);
+        box-shadow: 0 0 0 1px var(--black);
+        color: var(--black);
+        filter: none;
+      }
+
+      .wheel-hub:active { color: var(--black); background: var(--vfd-bright); }
+
+      /* the wheel's label is a bone sticker */
+      .wheel-readout {
+        background: var(--text);
+        border-color: var(--text);
+        color: var(--black);
+      }
+
+      .wheel-readout .micro { color: var(--black); opacity: 0.6; }
+    }
   }
 </style>
 </head>
@@ -1710,12 +1847,23 @@
       <div class="setup-drawer" id="setup-drawer">
         <div class="setup">
           <div class="setup-row">
+            <span class="micro" id="style-label">Style</span>
+            <div class="styles" role="radiogroup" aria-labelledby="style-label">
+              <button class="key key-small style-key" type="button" role="radio" data-style="hifi" aria-checked="false">Hi-fi deck</button>
+              <button class="key key-small style-key" type="button" role="radio" data-style="graphic" aria-checked="true">Graphic</button>
+            </div>
+          </div>
+          <div class="setup-row">
             <span class="micro" id="skin-label">Display colour</span>
             <div class="skins" role="radiogroup" aria-labelledby="skin-label">
-              <button class="key key-small skin" type="button" role="radio" data-skin="acid" style="--swatch: #d4ff2a" aria-checked="true"><span class="swatch"></span>Acid</button>
-              <button class="key key-small skin" type="button" role="radio" data-skin="pink" style="--swatch: #ff2e88" aria-checked="false"><span class="swatch"></span>Pink</button>
-              <button class="key key-small skin" type="button" role="radio" data-skin="cyan" style="--swatch: #3df0ff" aria-checked="false"><span class="swatch"></span>Cyan</button>
-              <button class="key key-small skin" type="button" role="radio" data-skin="orange" style="--swatch: #ff6a1f" aria-checked="false"><span class="swatch"></span>Orange</button>
+              <button class="key key-small skin" type="button" role="radio" data-for="hifi" data-skin="aqua" style="--swatch: #7df9e4" aria-checked="false"><span class="swatch"></span>Aqua</button>
+              <button class="key key-small skin" type="button" role="radio" data-for="hifi" data-skin="amber" style="--swatch: #ffa636" aria-checked="false"><span class="swatch"></span>Amber</button>
+              <button class="key key-small skin" type="button" role="radio" data-for="hifi" data-skin="green" style="--swatch: #66ff8c" aria-checked="false"><span class="swatch"></span>Green</button>
+              <button class="key key-small skin" type="button" role="radio" data-for="hifi" data-skin="red" style="--swatch: #ff4c4c" aria-checked="false"><span class="swatch"></span>Red</button>
+              <button class="key key-small skin" type="button" role="radio" data-for="graphic" data-skin="acid" style="--swatch: #d4ff2a" aria-checked="true"><span class="swatch"></span>Acid</button>
+              <button class="key key-small skin" type="button" role="radio" data-for="graphic" data-skin="pink" style="--swatch: #ff2e88" aria-checked="false"><span class="swatch"></span>Pink</button>
+              <button class="key key-small skin" type="button" role="radio" data-for="graphic" data-skin="cyan" style="--swatch: #3df0ff" aria-checked="false"><span class="swatch"></span>Cyan</button>
+              <button class="key key-small skin" type="button" role="radio" data-for="graphic" data-skin="orange" style="--swatch: #ff6a1f" aria-checked="false"><span class="swatch"></span>Orange</button>
             </div>
           </div>
           <div class="setup-row">
@@ -2207,6 +2355,7 @@ function playSong(i) {
   audio.play().catch(() => {});
   showNowPlaying(song);
   updateStatus();
+  updatePlayState();
 
   wheelToSong(i);
 
@@ -3567,23 +3716,50 @@ for (const key of document.querySelectorAll(".spectrum-toggle")) {
 
 // ---------- setup: skins and the tape deck ----------
 
-const SKINS = ["acid", "pink", "cyan", "orange"];
+// each style has its own four colours, the first is its default
+const STYLES = {
+  hifi: ["aqua", "amber", "green", "red"],
+  graphic: ["acid", "pink", "cyan", "orange"],
+};
+let style = document.documentElement.dataset.style === "hifi" ? "hifi" : "graphic";
 
 function setSkin(skin) {
-  if (!SKINS.includes(skin)) {
-    skin = "acid";
+  const skins = STYLES[style];
+  if (!skins.includes(skin)) {
+    skin = skins[0];
   }
-  if (skin === "acid") {
+  if (skin === skins[0]) {
     delete document.documentElement.dataset.skin;
   } else {
     document.documentElement.dataset.skin = skin;
   }
   for (const key of document.querySelectorAll(".skin")) {
-    key.setAttribute("aria-checked", key.dataset.skin === skin);
+    key.setAttribute("aria-checked", key.dataset.for === style && key.dataset.skin === skin);
   }
-  saveSetting("sonde-skin", skin);
+  saveSetting(`sonde-skin-${style}`, skin);
   readVizColours();
   wakeSpectrum();
+}
+
+function setStyle(next) {
+  style = next === "hifi" ? "hifi" : "graphic";
+  document.documentElement.dataset.style = style;
+  for (const key of document.querySelectorAll(".style-key")) {
+    key.setAttribute("aria-checked", key.dataset.style === style);
+  }
+  saveSetting("sonde-style", style);
+  setSkin(loadSetting(`sonde-skin-${style}`, ""));
+
+  // the styles set rows in different type, so the wheel's rows moved
+  measureRows();
+  followScroll();
+}
+
+for (const key of document.querySelectorAll(".style-key")) {
+  key.addEventListener("click", () => {
+    setStyle(key.dataset.style);
+    clicks.confirm();
+  });
 }
 
 for (const key of document.querySelectorAll(".skin")) {
@@ -3926,7 +4102,12 @@ $("clicks").setAttribute("aria-pressed", clicks.on);
 deckDial.setValue(0, false);
 setDialShown(loadSetting("sonde-dial", "shown") === "shown");
 wheel.setValue(0, false);
-setSkin(loadSetting("sonde-skin", "acid"));
+// skins used to be one setting for the hi-fi deck, carry that over
+const oldSkin = loadSetting("sonde-skin", "");
+if (STYLES.hifi.includes(oldSkin) && !loadSetting("sonde-skin-hifi", "")) {
+  saveSetting("sonde-skin-hifi", oldSkin);
+}
+setStyle(style);
 setTapeOn(tapeOn);
 setSetupOpen(false);
 for (const panel of spectrumPanels) {

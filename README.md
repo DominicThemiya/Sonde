@@ -11,7 +11,9 @@ command line client that plays a song through a player like mpv.
 - Retro visualizer in the library and the player: LED spectrum bars, an
   oscilloscope or a pair of VU meters, tap it to switch
 - Tape-deck pause: the song winds down when you pause and spins up when you play
-- Four signal colours: acid, pink, cyan and orange
+- Two styles, switched in Setup: a hi-fi deck with a glowing display (aqua,
+  amber, green or red), or flat graphic print with stickers, codes and
+  barcodes (acid, pink, cyan or orange)
 - Installs on a phone's home screen like an app
 - One command to run it in the background and share it on Tailscale
 - Updates itself: `sonded update`
