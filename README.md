@@ -13,6 +13,8 @@ command line client that plays a song through a player like mpv.
 - Tape-deck pause: the song winds down when you pause and spins up when you play
 - Four display colours: aqua, amber, green and red
 - Installs on a phone's home screen like an app
+- One command to run it in the background and share it on Tailscale
+- Updates itself: `sonded update`
 - Linux and Windows
 
 Download the latest build from
@@ -33,7 +35,7 @@ Download the latest build from
    ./sonded ~/Music
    ```
 
-   It prints `Serving /home/you/Music on port 8080` and logs each request.
+   It prints `Sonde 0.2.0 serving /home/you/Music on port 8080` and logs each request.
    Songs are the `.mp3` and `.flac` files directly inside that folder.
 
 3. Open <http://localhost:8080> in a browser.
@@ -41,29 +43,18 @@ Download the latest build from
 To open it from other devices, see [Phones and other devices](#phones-and-other-devices).
 If you use a firewall such as ufw, allow the port: `sudo ufw allow 8080/tcp`.
 
-### Start it automatically
+### Run it in the background
 
-To have it run in the background and start when you log in, copy `sonded`
-to `~/.local/bin`, then create `~/.config/systemd/user/sonded.service`:
-
-```ini
-[Unit]
-Description=Sonde music server
-
-[Service]
-ExecStart=%h/.local/bin/sonded %h/Music
-Restart=on-failure
-
-[Install]
-WantedBy=default.target
-```
-
-Then turn it on:
+Put `sonded` somewhere it can stay, like `~/.local/bin`, then:
 
 ```sh
-systemctl --user enable --now sonded
-journalctl --user -u sonded -f    # watch the log
+sonded ts ~/Music
 ```
+
+That sets sonded up as a systemd user service that starts at boot and keeps
+running when you log out, and shares it on your tailnet (see
+[Listening away from home](#listening-away-from-home)). Watch its log with
+`journalctl --user -u sonded -f`. `sonded ts off` undoes all of it.
 
 ## Windows
 
@@ -90,16 +81,19 @@ Needs Windows 10 or 11.
 
 Keep the window open while you listen. Closing it stops the server.
 
-### Start it automatically
+### Run it in the background
 
-1. Right click `sonded.exe` and choose **Show more options**, then
-   **Create shortcut**.
-2. Right click the shortcut, choose **Properties**, and add your music
-   folder to the end of **Target**, for example:
-   `"C:\Sonde\sonded.exe" "C:\Users\you\Music"`.
-   Set **Run** to **Minimized**.
-3. Press Win+R, type `shell:startup` and press Enter, then move the
-   shortcut into the folder that opens.
+Move the folder somewhere it can stay, like `C:\Sonde`, then in a Command
+Prompt there:
+
+```bat
+sonded.exe ts "C:\Users\you\Music"
+```
+
+That starts sonded with no window, starts it again whenever you log in, and
+shares it on your tailnet (see [Listening away from home](#listening-away-from-home)).
+Its log is in `%LOCALAPPDATA%\Sonde\sonded.log`. `sonded.exe ts off` undoes
+all of it.
 
 ## Phones and other devices
 
@@ -130,18 +124,35 @@ Chrome to trust your server:
 [Tailscale](https://tailscale.com) puts your devices on a private network
 and gives the server an https address, which also makes it installable on
 Android. Install Tailscale on the computer and the phone, sign in to the
-same account on both, enable **HTTPS Certificates** in the Tailscale admin
-console under DNS, then on the computer run:
+same account on both, and enable **HTTPS Certificates** in the Tailscale
+admin console under DNS. Then on the computer:
 
 ```sh
-sudo tailscale serve --bg 8080
+sonded ts ~/Music
 ```
 
-On Windows, run `tailscale serve --bg 8080` from a Command Prompt opened as
-administrator.
+It prints the address to open on the phone, like
+`https://laptop.tail1234.ts.net`.
 
-Then open `https://<computer name>.<your tailnet>.ts.net` on the phone.
-`tailscale serve status` shows the exact address.
+If it says it couldn't set up tailscale serve:
+
+- **Linux**: let your user manage Tailscale once with
+  `sudo tailscale set --operator=$USER`, then run `sonded ts` again
+- **Windows**: run `tailscale serve --bg 8080` once from a Command Prompt
+  opened as administrator
+
+## Updating
+
+```sh
+sonded update
+```
+
+downloads the newest release from GitHub and puts it in place of the
+`sonded` and `sonde` you ran it from. If `sonded ts` set up a background
+server, that's restarted on the new version; otherwise restart sonded
+yourself. It needs `curl` and `tar`, which Windows 10 and 11 and most Linux
+systems already have. If sonded is in a system folder like `/usr/local/bin`,
+run it with `sudo`.
 
 ## The command line client
 

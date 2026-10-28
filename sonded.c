@@ -9,8 +9,10 @@
 #include <sys/stat.h>
 
 #include "platform.h"
+#include "manage.h"
 #include "metadata.h"
 #include "text.h"
+#include "version.h"
 
 #ifndef _WIN32
 #include <signal.h>
@@ -850,11 +852,35 @@ void start_client(sock_t listen_fd, sock_t conn_fd, const char* music_dir) {
 #endif
 }
 
+void print_usage(const char* program) {
+    fprintf(stderr,
+        "Sonde %s\n"
+        "\n"
+        "Usage:\n"
+        "  %s <music folder>      serve the folder on port %d\n"
+        "  %s ts <music folder>   serve it in the background from now on and share it on your tailnet\n"
+        "  %s ts off              stop the background server and stop sharing it\n"
+        "  %s update              download and install the latest release\n"
+        "  %s version             show which version this is\n",
+        SONDE_VERSION, program, STREAM_PORT, program, program, program, program
+    );
+}
+
 int main(int argc, char** argv) {
+    // update, ts and version. a folder with one of those names needs ./ in front
+    if (argc >= 2) {
+        int command_result = manage_command(argc, argv);
+        if (command_result != -1) {
+            return command_result;
+        }
+    }
+
     if (argc != 2) {
-        fprintf(stderr, "Usage: %s <music folder>\n", argv[0]);
+        print_usage(argv[0]);
         return EXIT_FAILURE;
     }
+
+    remove_old_binary();
 
     char* music_dir = argv[1];
 
@@ -905,7 +931,7 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    printf("Serving %s on port %d\n", music_dir, STREAM_PORT);
+    printf("Sonde %s serving %s on port %d\n", SONDE_VERSION, music_dir, STREAM_PORT);
 
     while (1) {
         // sonde client socket
