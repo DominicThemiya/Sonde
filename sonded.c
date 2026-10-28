@@ -125,7 +125,9 @@ sock_t create_listen_socket(int port) {
         return SOCK_INVALID;
     }
 
-    int listen_err = listen(listen_fd, 1);
+    // a browser opening the library asks for every cover at once, so let
+    // plenty of connections queue up instead of being dropped and retried
+    int listen_err = listen(listen_fd, SOMAXCONN);
     if (listen_err) {
         sock_perror("listen");
         sock_close(listen_fd);
