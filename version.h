@@ -3,7 +3,7 @@
 
 // bump this with every release, sonded update compares it with the newest tag
 #ifndef SONDE_VERSION
-#define SONDE_VERSION "0.3.0"
+#define SONDE_VERSION "0.4.0"
 #endif
 
 #define SONDE_REPO "DominicThemiya/Sonde"
