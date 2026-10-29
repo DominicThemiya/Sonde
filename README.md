@@ -11,6 +11,8 @@ command line client that plays a song through a player like mpv.
 - Retro visualizer in the library and the player: LED spectrum bars, an
   oscilloscope or a pair of VU meters, tap it to switch
 - Tape-deck pause: the song winds down when you pause and spins up when you play
+- 10-band equalizer with presets (including a lo-fi radio), and a tuning mode
+  that listens to your speakers through the microphone and evens them out
 - Two styles, switched in Setup: a hi-fi deck with a glowing display (aqua,
   amber, green or red), or flat graphic print with stickers, codes and
   barcodes (acid, pink, cyan or orange)

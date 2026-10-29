@@ -1353,6 +1353,253 @@
     .wheel-readout { transition: none; }
   }
 
+  /* ---------- equalizer ---------- */
+
+  .spec-values { margin-left: auto; white-space: nowrap; }
+
+  /* the EQ's state on the now-playing line, and the way into the rack */
+  .eq-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 18px;
+    margin-top: -2px;
+    padding: 0 5px;
+    border: 1px solid var(--line-strong);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .eq-chip:hover { color: var(--text); }
+  .eq-chip.on { border-color: var(--vfd); color: var(--vfd); }
+
+  /* a lamp, lit while the EQ is on */
+  .eq-lamp {
+    width: 5px;
+    height: 5px;
+    background: var(--led-off);
+  }
+
+  .eq-chip.on .eq-lamp { background: var(--led); box-shadow: 0 0 6px var(--led); }
+
+  body.eq-open { overflow: hidden; }
+
+  .eq-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgb(0 0 0 / 0.72);
+  }
+
+  .eq-panel {
+    width: min(680px, 100%);
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+    padding: 16px 18px 18px;
+    background: var(--black);
+    border: 1px solid var(--line-strong);
+    outline: none;
+  }
+
+  .eq-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .eq-title {
+    margin: 0 auto 0 0;
+    font: 400 16px/1 var(--mark-font);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .eq-close {
+    width: 34px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line-strong);
+    color: var(--muted);
+  }
+
+  .eq-close:hover { color: var(--text); }
+
+  .eq-screen { margin: 0; padding: 8px 8px 6px; }
+
+  .eq-curve {
+    display: block;
+    width: 100%;
+    height: 170px;
+    touch-action: none;
+    cursor: ns-resize;
+  }
+
+  .eq-readout {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    color: var(--vfd);
+    opacity: 0.7;
+  }
+
+  /* hardware faders: a slot with a scale, a lit bar from the middle and a cap */
+  .eq-faders {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 4px;
+    margin: 14px 0 4px;
+  }
+
+  .fader {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    outline-offset: 2px;
+  }
+
+  .fader-value { min-height: 12px; color: var(--vfd); white-space: nowrap; }
+  .fader-label { color: var(--muted); }
+
+  .fader-slot {
+    position: relative;
+    width: 100%;
+    height: 150px;
+    touch-action: none;
+    cursor: ns-resize;
+  }
+
+  .fader { --pos: 0.5; }
+
+  /* a mark every 3 dB, the middle one brighter */
+  .fader-slot::before {
+    content: "";
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    top: 8px;
+    bottom: 8px;
+    background:
+      linear-gradient(var(--muted), var(--muted)) 0 50% / 100% 1px no-repeat,
+      repeating-linear-gradient(to bottom, var(--line-strong) 0 1px, transparent 1px 12.5%);
+  }
+
+  .fader-track {
+    position: absolute;
+    left: calc(50% - 2px);
+    top: 8px;
+    bottom: 8px;
+    width: 4px;
+    background: var(--black);
+    box-shadow: 0 0 0 1px var(--line-strong);
+  }
+
+  .fader-fill {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(min(50%, (1 - var(--pos)) * 100%));
+    bottom: calc(min(50%, var(--pos) * 100%));
+    background: var(--vfd);
+    box-shadow: 0 0 6px rgb(var(--vfd-rgb) / 0.5);
+  }
+
+  .fader-cap {
+    position: absolute;
+    left: 50%;
+    bottom: calc(8px + var(--pos) * (100% - 16px));
+    width: min(30px, 86%);
+    height: 16px;
+    transform: translate(-50%, 50%);
+    background: linear-gradient(to bottom, var(--key-hover-top), var(--key-bottom));
+    border: 1px solid var(--key-edge);
+    box-shadow: 0 2px 0 var(--key-shadow);
+  }
+
+  .fader-cap::after {
+    content: "";
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    top: calc(50% - 1px);
+    height: 2px;
+    background: var(--vfd);
+  }
+
+  .fader.grabbing .fader-cap,
+  .fader:focus-visible .fader-cap { border-color: var(--vfd); }
+
+  .eq-off .fader-fill, .eq-off .fader-value { opacity: 0.35; }
+
+  .eq-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 14px 0 6px;
+  }
+
+  .eq-reset { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+  .eq-reset:hover { color: var(--text); }
+
+  .eq-presets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 6px;
+  }
+
+  .eq-preset { height: 32px; }
+  .eq-preset[aria-checked="true"] { color: var(--text); box-shadow: inset 0 0 0 1px var(--vfd), 0 3px 0 var(--key-shadow); }
+
+  .eq-tune {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 14px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  .eq-tune-title { font-weight: 600; }
+
+  .eq-tune-text {
+    max-width: 56ch;
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+
+  .eq-tune-key { height: 34px; padding: 0 18px; }
+  .eq-tune-key[aria-pressed="true"] { color: var(--led); }
+
+  @media (max-width: 959px) {
+    .eq-sheet { padding: 0; place-items: stretch; }
+
+    .eq-panel {
+      width: 100%;
+      max-height: none;
+      height: 100dvh;
+      padding: calc(12px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));
+      border: 0;
+    }
+
+    .eq-curve { height: 140px; }
+    .eq-faders { gap: 2px; }
+    .fader-slot { height: 130px; }
+    .fader-value { font-size: 8.5px; }
+    .eq-presets { grid-template-columns: repeat(3, 1fr); }
+    .eq-tune { grid-template-columns: 1fr; }
+    .eq-tune-key { justify-self: start; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .eq-chip { transition: none; }
+  }
+
   /* the icon sprite is only a source of symbols, in either style */
   .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 
@@ -1778,6 +2025,36 @@
       .wheel-readout .micro { color: var(--black); opacity: 0.6; }
     }
   }
+
+  /* the rack in the graphic style: printed, not lit */
+  :root:not([data-style="hifi"]) {
+    .eq-title {
+      font: 900 24px/1 var(--mark-font);
+      font-stretch: 125%;
+      letter-spacing: -0.02em;
+    }
+
+    .eq-readout { color: var(--muted); opacity: 1; }
+
+    .fader-fill { box-shadow: none; }
+
+    .fader-cap {
+      background: var(--black);
+      border-color: var(--text);
+      box-shadow: none;
+    }
+
+    .eq-preset[aria-checked="true"] { box-shadow: inset 0 0 0 1px var(--vfd); }
+
+    .eq-tune-title {
+      font-weight: 800;
+      font-stretch: 112%;
+      text-transform: uppercase;
+    }
+
+    .eq-reset { font: 600 9.5px/1 var(--micro-font); text-transform: uppercase; }
+    .eq-chip.on .eq-lamp { box-shadow: none; }
+  }
 </style>
 </head>
 <body>
@@ -1880,6 +2157,7 @@
       <div class="spec micro">
         <span class="tag">Now playing</span>
         <span class="spec-values" id="spec"></span>
+        <button class="eq-chip" id="eq-chip" type="button" aria-haspopup="dialog" aria-label="Equalizer, off" title="Equalizer (E)">EQ<span class="eq-lamp"></span></button>
       </div>
 
       <div class="cover-slot">
@@ -2036,6 +2314,46 @@
   <button class="wheel-hub" id="wheel-hub" type="button" data-no-drag aria-label="Play highlighted song">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>
   </button>
+</div>
+
+<div class="eq-sheet" id="eq-sheet" hidden>
+  <div class="eq-panel" id="eq-panel" role="dialog" aria-modal="true" aria-labelledby="eq-title" tabindex="-1">
+    <div class="eq-head">
+      <h2 class="eq-title" id="eq-title">Equalizer</h2>
+      <button class="key key-small toggle-key" id="eq-power" type="button" aria-pressed="false" title="Turn the equalizer on or off">
+        <span class="lamp"></span>
+        On
+      </button>
+      <button class="eq-close" id="eq-close" type="button" aria-label="Close the equalizer">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+    </div>
+
+    <div class="eq-screen vfd">
+      <canvas class="eq-curve" id="eq-curve" aria-label="Equalizer curve. Drag a band's handle up or down"></canvas>
+      <div class="eq-readout micro">
+        <span id="eq-preset-name">Flat</span>
+        <span id="eq-headroom">Headroom −0.0 dB</span>
+      </div>
+    </div>
+
+    <div class="eq-faders" id="eq-faders"></div>
+
+    <div class="eq-row">
+      <span class="micro">Presets</span>
+      <button class="eq-reset micro" id="eq-reset" type="button">Reset to flat</button>
+    </div>
+    <div class="eq-presets" id="eq-presets" role="radiogroup" aria-label="Presets"></div>
+
+    <div class="eq-tune">
+      <div>
+        <div class="eq-tune-title">Tune to my speakers</div>
+        <p class="eq-tune-text" id="eq-tune-text">Sonde listens to the room, plays a short hiss and hears it back through the microphone, then sets the EQ to even out your speakers. Put the device where you usually listen.</p>
+        <p class="eq-tune-text micro" id="eq-ios-note" hidden>On iPhone, music can stop when the screen locks while the EQ is on.</p>
+      </div>
+      <button class="key key-small eq-tune-key" id="eq-tune" type="button" aria-pressed="false">Start</button>
+    </div>
+  </div>
 </div>
 
 <label class="haptic-switch" id="haptic-switch" aria-hidden="true"><input type="checkbox" switch tabindex="-1"></label>
@@ -2602,6 +2920,8 @@ document.addEventListener("keydown", (event) => {
   } else if (event.key === " ") {
     event.preventDefault();
     togglePlay();
+  } else if (event.key === "e" || event.key === "E") {
+    openEq();
   } else if (event.key === "ArrowRight" && audio.duration) {
     audio.currentTime = Math.min(audio.duration, audio.currentTime + 5);
   } else if (event.key === "ArrowLeft" && audio.duration) {
@@ -3259,7 +3579,8 @@ function connectSpectrum() {
     }
     return;
   }
-  if (!spectrumShown) {
+  // only route through Web Audio when something needs it
+  if (!spectrumShown && !eq.on) {
     return;
   }
 
@@ -3267,10 +3588,14 @@ function connectSpectrum() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const source = ctx.createMediaElementSource(audio);
 
+    // player, then the EQ, then the analysers and the speakers, so the
+    // displays show what you hear
+    const equalized = buildEq(ctx, source);
+
     analyser = ctx.createAnalyser();
     analyser.fftSize = 4096;
     analyser.smoothingTimeConstant = 0.55;
-    source.connect(analyser);
+    equalized.connect(analyser);
     analyser.connect(ctx.destination);
 
     // the meters listen to each side on its own. they go nowhere, but
@@ -3280,7 +3605,7 @@ function connectSpectrum() {
     const silent = ctx.createGain();
     silent.gain.value = 0;
     silent.connect(ctx.destination);
-    source.connect(splitter);
+    equalized.connect(splitter);
 
     channels = [0, 1].map((side) => {
       const meter = ctx.createAnalyser();
@@ -3295,6 +3620,7 @@ function connectSpectrum() {
     channelBins = new Float32Array(2048);
   } catch {
     analyser = null;
+    eqNodes = null;
   }
 }
 
@@ -3713,6 +4039,832 @@ for (const key of document.querySelectorAll(".spectrum-toggle")) {
     clicks.confirm();
   });
 }
+
+// ---------- equalizer ----------
+
+// ten bands an octave apart, from the lowest bass to the top of hearing
+const EQ_BANDS = [31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+const EQ_LABELS = ["31", "63", "125", "250", "500", "1k", "2k", "4k", "8k", "16k"];
+const EQ_RANGE = 12; // dB either way
+
+const EQ_PRESETS = {
+  flat: { name: "Flat", gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  bass: { name: "Bass", gains: [6, 5.5, 4, 2, 0, 0, 0, 0, 0, 0] },
+  warm: { name: "Warm", gains: [3, 3, 2, 1, 0, -0.5, -1, -1.5, -2.5, -3.5] },
+  bright: { name: "Bright", gains: [0, 0, 0, -0.5, 0, 0.5, 1.5, 3, 4, 4.5] },
+  vocal: { name: "Vocal", gains: [-2.5, -2, -1, 0, 1, 2.5, 3.5, 3, 1, 0] },
+  loudness: { name: "Loudness", gains: [5, 4.5, 2.5, 0, -1, -1.5, -0.5, 1, 3, 4] },
+  club: { name: "Club", gains: [6, 5, 3, 0, -1.5, -1, 0.5, 2, 2.5, 1.5] },
+  night: { name: "Late night", gains: [-5, -3.5, -1.5, 0, 0.5, 1, 1, 0, -1.5, -3] },
+  laptop: { name: "Laptop", gains: [-8, -5, -1.5, 1, 1, 0.5, 1.5, 2, 1.5, 0.5] },
+  radio: { name: "Lo-fi radio", gains: [-12, -12, -9, -3, 2, 4.5, 3, -5, -11, -12] },
+};
+
+// on, the ten gains, which preset they came from, and the last speaker tuning
+let eq = { on: false, gains: EQ_PRESETS.flat.gains.slice(), preset: "flat", tuned: null };
+
+try {
+  const saved = JSON.parse(loadSetting("sonde-eq", "null"));
+  if (saved && Array.isArray(saved.gains) && saved.gains.length === EQ_BANDS.length) {
+    eq = { ...eq, ...saved };
+  }
+} catch {
+  // a broken setting just means a flat EQ
+}
+
+let eqNodes = null;   // the filters the music goes through, once routed
+let eqSaveTimer = 0;
+
+function saveEq() {
+  clearTimeout(eqSaveTimer);
+  eqSaveTimer = setTimeout(() => saveSetting("sonde-eq", JSON.stringify(eq)), 300);
+}
+
+// the lowest band shelves everything below it, the highest everything
+// above, the rest are bells an octave wide
+function configureBand(filter, i) {
+  filter.type = i === 0 ? "lowshelf" : i === EQ_BANDS.length - 1 ? "highshelf" : "peaking";
+  filter.frequency.value = i === 0 ? 45 : i === EQ_BANDS.length - 1 ? 12000 : EQ_BANDS[i];
+  filter.Q.value = 1.4;
+}
+
+// boosts can push the music past full scale, so turn the whole thing down
+// by most of the biggest boost, and let a limiter catch what's left
+function eqHeadroom() {
+  return eq.on ? Math.max(0, ...eq.gains) * 0.6 : 0;
+}
+
+// player -> headroom -> ten filters -> limiter. returns the limiter
+function buildEq(ctx, input) {
+  const trim = ctx.createGain();
+  const filters = EQ_BANDS.map((_, i) => {
+    const filter = ctx.createBiquadFilter();
+    configureBand(filter, i);
+    return filter;
+  });
+  const limiter = ctx.createDynamicsCompressor();
+  limiter.knee.value = 0;
+  limiter.attack.value = 0.003;
+  limiter.release.value = 0.12;
+
+  input.connect(trim);
+  let last = trim;
+  for (const filter of filters) {
+    last.connect(filter);
+    last = filter;
+  }
+  last.connect(limiter);
+
+  eqNodes = { ctx, trim, filters, limiter };
+  applyEq(true);
+  return limiter;
+}
+
+// a copy of the filters on a silent context, so the curve can be drawn
+// before any audio is routed
+const eqModel = (() => {
+  try {
+    const ctx = new OfflineAudioContext(1, 128, 48000);
+    return EQ_BANDS.map((_, i) => {
+      const filter = ctx.createBiquadFilter();
+      configureBand(filter, i);
+      return filter;
+    });
+  } catch {
+    return null;
+  }
+})();
+
+// push the gains into the filters. glides over 20 ms so changes don't click
+function applyEq(instant) {
+  eq.gains.forEach((gain, i) => {
+    if (eqModel) {
+      eqModel[i].gain.value = gain;
+    }
+  });
+
+  if (!eqNodes) {
+    return;
+  }
+  const now = eqNodes.ctx.currentTime;
+  const glide = (param, value) => {
+    if (instant) {
+      param.value = value;
+    } else {
+      param.setTargetAtTime(value, now, 0.02);
+    }
+  };
+
+  eq.gains.forEach((gain, i) => glide(eqNodes.filters[i].gain, eq.on ? gain : 0));
+  glide(eqNodes.trim.gain, Math.pow(10, -eqHeadroom() / 20));
+
+  // when off, the limiter steps aside so loud masters aren't squashed
+  eqNodes.limiter.threshold.value = eq.on ? -1 : 0;
+  eqNodes.limiter.ratio.value = eq.on ? 20 : 1;
+}
+
+// ---------- equalizer: the rack ----------
+
+const eqFaders = [];
+
+function eqPresetName() {
+  if (eq.preset === "tuned") {
+    return "Tuned";
+  }
+  return EQ_PRESETS[eq.preset]?.name || "Custom";
+}
+
+function formatDb(gain) {
+  return `${gain > 0 ? "+" : gain < 0 ? "−" : ""}${Math.abs(gain).toFixed(1)}`;
+}
+
+// everything that shows the EQ: faders, preset keys, chip, power key
+function renderEq() {
+  eq.gains.forEach((gain, i) => {
+    const fader = eqFaders[i];
+    fader.el.style.setProperty("--pos", ((gain + EQ_RANGE) / (2 * EQ_RANGE)).toFixed(4));
+    fader.el.setAttribute("aria-valuenow", gain);
+    fader.el.setAttribute("aria-valuetext", `${EQ_LABELS[i]} hertz, ${formatDb(gain)} decibels`);
+    fader.value.textContent = formatDb(gain);
+  });
+
+  for (const key of document.querySelectorAll(".eq-preset")) {
+    key.setAttribute("aria-checked", key.dataset.preset === eq.preset);
+  }
+  $("eq-preset-tuned").hidden = !eq.tuned;
+
+  $("eq-power").setAttribute("aria-pressed", eq.on);
+  $("eq-sheet").classList.toggle("eq-off", !eq.on);
+  $("eq-preset-name").textContent = eqPresetName();
+  $("eq-headroom").textContent = `Headroom −${eqHeadroom().toFixed(1)} dB`;
+  $("eq-chip").classList.toggle("on", eq.on);
+  $("eq-chip").setAttribute("aria-label", `Equalizer, ${eq.on ? eqPresetName() : "off"}`);
+  $("eq-chip").title = `Equalizer: ${eq.on ? eqPresetName() : "off"} (E)`;
+  wakeEqCurve();
+}
+
+function setBand(i, gain) {
+  gain = Math.round(Math.min(EQ_RANGE, Math.max(-EQ_RANGE, gain)) * 2) / 2;
+  if (gain === eq.gains[i]) {
+    return;
+  }
+
+  // a click for every whole dB, pitched by how far up the fader is
+  if (Math.trunc(gain) !== Math.trunc(eq.gains[i]) || gain === 0) {
+    clicks.tick(0.75 + ((gain + EQ_RANGE) / (2 * EQ_RANGE)) * 0.6);
+  }
+
+  eq.gains[i] = gain;
+  const preset = eq.preset === "tuned" ? eq.tuned?.gains : EQ_PRESETS[eq.preset]?.gains;
+  if (!preset || preset[i] !== gain) {
+    eq.preset = "custom";
+  }
+  applyEq();
+  renderEq();
+  saveEq();
+}
+
+function setPreset(key) {
+  const gains = key === "tuned" ? eq.tuned?.gains : EQ_PRESETS[key]?.gains;
+  if (!gains) {
+    return;
+  }
+  eq.gains = gains.slice();
+  eq.preset = key;
+  applyEq();
+  renderEq();
+  saveEq();
+}
+
+function setEqOn(on) {
+  eq.on = on;
+  // the click that turned it on is the touch that lets audio start
+  connectSpectrum();
+  applyEq();
+  renderEq();
+  saveEq();
+}
+
+// gain for a pointer position on a fader or the curve: top is +12, bottom
+// -12, with a little magnet at 0
+function gainAt(clientY, rect) {
+  const ratio = (clientY - rect.top) / rect.height;
+  const gain = (0.5 - ratio) * 2 * EQ_RANGE;
+  return Math.abs(gain) < 0.75 ? 0 : gain;
+}
+
+function buildFaders() {
+  EQ_BANDS.forEach((freq, i) => {
+    const el = document.createElement("div");
+    el.className = "fader";
+    el.tabIndex = 0;
+    el.setAttribute("role", "slider");
+    el.setAttribute("aria-orientation", "vertical");
+    el.setAttribute("aria-valuemin", -EQ_RANGE);
+    el.setAttribute("aria-valuemax", EQ_RANGE);
+    el.setAttribute("aria-label", `${EQ_LABELS[i]} hertz`);
+
+    const value = document.createElement("span");
+    value.className = "fader-value micro";
+    const slot = document.createElement("div");
+    slot.className = "fader-slot";
+    slot.innerHTML = '<div class="fader-track"><div class="fader-fill"></div></div><div class="fader-cap"></div>';
+    const label = document.createElement("span");
+    label.className = "fader-label micro";
+    label.textContent = EQ_LABELS[i];
+
+    el.append(value, slot, label);
+    $("eq-faders").append(el);
+
+    let pointer = null;
+
+    slot.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) {
+        return;
+      }
+      pointer = event.pointerId;
+      try {
+        slot.setPointerCapture(pointer);
+      } catch {
+        // already gone
+      }
+      el.classList.add("grabbing");
+      clicks.grab();
+      setBand(i, gainAt(event.clientY, slot.getBoundingClientRect()));
+    });
+    slot.addEventListener("pointermove", (event) => {
+      if (event.pointerId === pointer) {
+        setBand(i, gainAt(event.clientY, slot.getBoundingClientRect()));
+      }
+    });
+    const release = (event) => {
+      if (event.pointerId === pointer) {
+        pointer = null;
+        el.classList.remove("grabbing");
+        clicks.settle();
+      }
+    };
+    slot.addEventListener("pointerup", release);
+    slot.addEventListener("pointercancel", release);
+
+    // double tap puts it back to the middle
+    el.addEventListener("dblclick", () => setBand(i, 0));
+
+    el.addEventListener("keydown", (event) => {
+      const step = { ArrowUp: 0.5, ArrowRight: 0.5, ArrowDown: -0.5, ArrowLeft: -0.5, PageUp: 3, PageDown: -3 }[event.key];
+      if (step) {
+        event.preventDefault();
+        setBand(i, eq.gains[i] + step);
+      } else if (event.key === "Home" || event.key === "End" || event.key === "0") {
+        event.preventDefault();
+        setBand(i, event.key === "Home" ? EQ_RANGE : event.key === "End" ? -EQ_RANGE : 0);
+      }
+    });
+
+    eqFaders.push({ el, value });
+  });
+}
+
+function buildPresetKeys() {
+  const keys = [...Object.entries(EQ_PRESETS).map(([key, preset]) => [key, preset.name]), ["tuned", "Tuned"]];
+
+  for (const [key, name] of keys) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "key key-small eq-preset";
+    button.setAttribute("role", "radio");
+    button.dataset.preset = key;
+    button.textContent = name;
+    if (key === "tuned") {
+      button.id = "eq-preset-tuned";
+    }
+    button.addEventListener("click", () => {
+      setPreset(key);
+      clicks.confirm();
+    });
+    $("eq-presets").append(button);
+  }
+}
+
+// ---------- equalizer: the curve ----------
+
+const EQ_LOW = 20;
+const EQ_HIGH = 20000;
+let eqCurveFrame = 0;
+let eqFreqs = null;
+let eqMag = null;
+let eqPhase = null;
+
+const xOfFreq = (freq, w) => (Math.log(freq / EQ_LOW) / Math.log(EQ_HIGH / EQ_LOW)) * w;
+const freqOfX = (x, w) => EQ_LOW * Math.pow(EQ_HIGH / EQ_LOW, x / w);
+
+function sizeEqCurve() {
+  const canvas = $("eq-curve");
+  const rect = canvas.getBoundingClientRect();
+  const dpr = devicePixelRatio || 1;
+  canvas.width = Math.round(rect.width * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+
+  const points = Math.max(64, Math.round(rect.width));
+  eqFreqs = new Float32Array(points);
+  eqMag = new Float32Array(points);
+  eqPhase = new Float32Array(points);
+  for (let i = 0; i < points; i++) {
+    eqFreqs[i] = freqOfX((i / (points - 1)) * rect.width, rect.width);
+  }
+}
+
+function drawEqCurve() {
+  const canvas = $("eq-curve");
+  const g = canvas.getContext("2d");
+  const dpr = devicePixelRatio || 1;
+  const w = canvas.width;
+  const h = canvas.height;
+  const pad = 10 * dpr;
+  const yOfDb = (db) => h / 2 - (db / EQ_RANGE) * (h / 2 - pad);
+
+  g.clearRect(0, 0, w, h);
+
+  // grid: dB lines and the ten band frequencies
+  g.lineWidth = 1;
+  g.strokeStyle = vizColours.grid;
+  g.beginPath();
+  for (const db of [-12, -6, 6, 12]) {
+    g.moveTo(0, Math.round(yOfDb(db)) + 0.5);
+    g.lineTo(w, Math.round(yOfDb(db)) + 0.5);
+  }
+  for (const freq of EQ_BANDS) {
+    const x = Math.round(xOfFreq(freq, w)) + 0.5;
+    g.moveTo(x, 0);
+    g.lineTo(x, h);
+  }
+  g.stroke();
+  g.strokeStyle = vizColours.dim;
+  g.beginPath();
+  g.moveTo(0, Math.round(yOfDb(0)) + 0.5);
+  g.lineTo(w, Math.round(yOfDb(0)) + 0.5);
+  g.stroke();
+
+  g.fillStyle = vizColours.dim;
+  g.font = `500 ${Math.round(9 * dpr)}px ${vizColours.font}`;
+  g.textAlign = "left";
+  g.fillText("+12", 3 * dpr, yOfDb(12) + 3 * dpr);
+  g.fillText("−12", 3 * dpr, yOfDb(-12) + 3 * dpr);
+
+  // the music right now, faint behind the curve
+  const live = analyser && !audio.paused;
+  if (live) {
+    analyser.getFloatFrequencyData(analyserBins);
+    const binHz = analyser.context.sampleRate / analyser.fftSize;
+    g.fillStyle = vizColours.ghost;
+    g.beginPath();
+    g.moveTo(0, h);
+    for (let x = 0; x <= w; x += 2 * dpr) {
+      const bin = Math.min(analyserBins.length - 1, Math.round(freqOfX(x, w) / binHz));
+      const level = Math.min(1, Math.max(0, (analyserBins[bin] + 100) / 80));
+      g.lineTo(x, h - level * h);
+    }
+    g.lineTo(w, h);
+    g.fill();
+  }
+
+  // live microphone bands while tuning
+  if (tuning?.live) {
+    g.fillStyle = vizColours.hot;
+    tuning.live.forEach((level, i) => {
+      const x = xOfFreq(EQ_BANDS[i], w);
+      const height = Math.min(1, Math.max(0, level)) * (h - pad * 2);
+      g.fillRect(x - 3 * dpr, h - pad - height, 6 * dpr, height);
+    });
+  }
+
+  // what the last tuning measured, dashed, when it's the one in use
+  if (eq.preset === "tuned" && eq.tuned?.measured) {
+    g.setLineDash([4 * dpr, 4 * dpr]);
+    g.strokeStyle = vizColours.hot;
+    g.lineWidth = Math.max(1, dpr);
+    g.beginPath();
+    eq.tuned.measured.forEach((db, i) => {
+      const x = xOfFreq(EQ_BANDS[i], w);
+      const y = yOfDb(Math.max(-EQ_RANGE, Math.min(EQ_RANGE, db)));
+      if (i === 0) {
+        g.moveTo(x, y);
+      } else {
+        g.lineTo(x, y);
+      }
+    });
+    g.stroke();
+    g.setLineDash([]);
+  }
+
+  // the EQ's response: every filter added up
+  if (eqModel && eqFreqs) {
+    const total = new Float32Array(eqFreqs.length);
+    for (const filter of eqModel) {
+      filter.getFrequencyResponse(eqFreqs, eqMag, eqPhase);
+      for (let i = 0; i < total.length; i++) {
+        total[i] += 20 * Math.log10(eqMag[i]);
+      }
+    }
+
+    const curve = new Path2D();
+    for (let i = 0; i < total.length; i++) {
+      const x = (i / (total.length - 1)) * w;
+      const y = yOfDb(Math.max(-EQ_RANGE - 2, Math.min(EQ_RANGE + 2, total[i])));
+      if (i === 0) {
+        curve.moveTo(x, y);
+      } else {
+        curve.lineTo(x, y);
+      }
+    }
+
+    const area = new Path2D(curve);
+    area.lineTo(w, yOfDb(0));
+    area.lineTo(0, yOfDb(0));
+    area.closePath();
+    g.globalAlpha = eq.on ? 0.22 : 0.08;
+    g.fillStyle = vizColours.lit;
+    g.fill(area);
+    g.globalAlpha = eq.on ? 1 : 0.45;
+    g.strokeStyle = vizColours.lit;
+    g.lineWidth = Math.max(1.5, 2 * dpr);
+    g.stroke(curve);
+
+    // a handle for each band, to drag
+    g.fillStyle = vizColours.bright;
+    eq.gains.forEach((gain, i) => {
+      const x = xOfFreq(EQ_BANDS[i], w);
+      const y = yOfDb(gain);
+      const size = 7 * dpr;
+      g.fillRect(x - size / 2, y - size / 2, size, size);
+    });
+    g.globalAlpha = 1;
+  }
+
+  // keep going while there's something live to show
+  eqCurveFrame = !$("eq-sheet").hidden && (live || tuning) ? requestAnimationFrame(drawEqCurve) : 0;
+}
+
+function wakeEqCurve() {
+  if ($("eq-sheet").hidden || !eqFreqs) {
+    return;
+  }
+  cancelAnimationFrame(eqCurveFrame);
+  eqCurveFrame = requestAnimationFrame(drawEqCurve);
+}
+
+new ResizeObserver(() => {
+  if (!$("eq-sheet").hidden) {
+    sizeEqCurve();
+    wakeEqCurve();
+  }
+}).observe($("eq-curve"));
+
+// drag a band's handle up and down on the curve itself
+{
+  const canvas = $("eq-curve");
+  let band = -1;
+  let pointer = null;
+
+  canvas.addEventListener("pointerdown", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    // nearest band, if the press is within half a band of it
+    let nearest = -1;
+    let best = Infinity;
+    EQ_BANDS.forEach((freq, i) => {
+      const distance = Math.abs(xOfFreq(freq, rect.width) - x);
+      if (distance < best) {
+        best = distance;
+        nearest = i;
+      }
+    });
+    if (best > rect.width / EQ_BANDS.length / 2) {
+      return;
+    }
+
+    band = nearest;
+    pointer = event.pointerId;
+    try {
+      canvas.setPointerCapture(pointer);
+    } catch {
+      // already gone
+    }
+    clicks.grab();
+    setBand(band, gainAt(event.clientY, rect));
+  });
+  canvas.addEventListener("pointermove", (event) => {
+    if (event.pointerId === pointer) {
+      setBand(band, gainAt(event.clientY, canvas.getBoundingClientRect()));
+    }
+  });
+  const release = (event) => {
+    if (event.pointerId === pointer) {
+      pointer = null;
+      clicks.settle();
+    }
+  };
+  canvas.addEventListener("pointerup", release);
+  canvas.addEventListener("pointercancel", release);
+}
+
+// ---------- equalizer: tune to my speakers ----------
+
+// play pink noise, listen with the microphone, and set the EQ to even out
+// what the speakers (and the room) do to it
+let tuning = null;
+
+const TUNE_QUIET_MS = 1200;   // listen to the room on its own first
+const TUNE_NOISE_MS = 4200;   // then the test sound
+const TUNE_SETTLE_MS = 700;   // ignore the start while the noise fades in
+
+function tuneText(text) {
+  $("eq-tune-text").textContent = text;
+}
+
+// pink noise has the same energy in every octave, so flat speakers give
+// every band the same level
+function pinkNoise(ctx, seconds) {
+  const buffer = ctx.createBuffer(1, Math.round(ctx.sampleRate * seconds), ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+
+  // Paul Kellet's filter turns white noise pink
+  for (let i = 0; i < data.length; i++) {
+    const white = Math.random() * 2 - 1;
+    b0 = 0.99886 * b0 + white * 0.0555179;
+    b1 = 0.99332 * b1 + white * 0.0750759;
+    b2 = 0.969 * b2 + white * 0.153852;
+    b3 = 0.8665 * b3 + white * 0.3104856;
+    b4 = 0.55 * b4 + white * 0.5329522;
+    b5 = -0.7616 * b5 - white * 0.016898;
+    data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+    b6 = white * 0.115926;
+  }
+  return buffer;
+}
+
+// average power in each octave band of the microphone's spectrum
+function bandPowers(meter, bins) {
+  meter.getFloatFrequencyData(bins);
+  const binHz = meter.context.sampleRate / meter.fftSize;
+
+  return EQ_BANDS.map((freq) => {
+    const lo = Math.max(1, Math.floor(freq / Math.SQRT2 / binHz));
+    const hi = Math.max(lo, Math.min(bins.length - 1, Math.ceil(freq * Math.SQRT2 / binHz)));
+    let sum = 0;
+    for (let k = lo; k <= hi; k++) {
+      sum += Math.pow(10, bins[k] / 10);
+    }
+    return sum;
+  });
+}
+
+function stopTuning(message) {
+  if (!tuning) {
+    return;
+  }
+  clearInterval(tuning.timer);
+  tuning.stream?.getTracks().forEach((track) => track.stop());
+  tuning.ctx?.close();
+  tuning = null;
+  $("eq-tune").textContent = "Start";
+  $("eq-tune").setAttribute("aria-pressed", "false");
+  if (message) {
+    tuneText(message);
+  }
+  wakeEqCurve();
+}
+
+async function startTuning() {
+  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+    tuneText("Tuning needs the microphone, which browsers only allow on a secure address. Open Sonde at its Tailscale https address, or on localhost.");
+    return;
+  }
+
+  tuning = { live: null };
+  $("eq-tune").textContent = "Stop";
+  $("eq-tune").setAttribute("aria-pressed", "true");
+  tuneText("Allow the microphone, then keep quiet for a few seconds.");
+
+  let stream;
+  try {
+    // turn off everything that "improves" a voice, it would hide the speakers
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+    });
+  } catch {
+    stopTuning("Couldn't use the microphone. Allow it for this site and try again.");
+    return;
+  }
+  if (!tuning) {
+    stream.getTracks().forEach((track) => track.stop());
+    return;
+  }
+
+  // the name of the speakers, when the browser will say
+  let device = "";
+  try {
+    const outputs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audiooutput");
+    const current = outputs.find((d) => d.deviceId === "default") || outputs[0];
+    device = (current?.label || "").replace(/^Default - /, "");
+  } catch {
+    // no names, that's fine
+  }
+
+  const wasPlaying = !audio.paused;
+  if (wasPlaying) {
+    resetTape();
+    audio.pause();
+  }
+
+  // a context of its own, so the test sound skips the EQ being measured
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const mic = ctx.createMediaStreamSource(stream);
+  const meter = ctx.createAnalyser();
+  meter.fftSize = 8192;
+  meter.smoothingTimeConstant = 0;
+  const silent = ctx.createGain();
+  silent.gain.value = 0;
+  mic.connect(meter);
+  meter.connect(silent);
+  silent.connect(ctx.destination);
+
+  const bins = new Float32Array(meter.frequencyBinCount);
+  const quiet = new Array(EQ_BANDS.length).fill(0);
+  const loud = new Array(EQ_BANDS.length).fill(0);
+  let quietCount = 0;
+  let loudCount = 0;
+
+  Object.assign(tuning, { stream, ctx });
+  const start = performance.now();
+  let noise = null;
+
+  tuning.timer = setInterval(() => {
+    const t = performance.now() - start;
+    const powers = bandPowers(meter, bins);
+
+    // live bars, scaled to look sensible
+    tuning.live = powers.map((p) => (10 * Math.log10(p + 1e-12) + 90) / 70);
+
+    if (t < TUNE_QUIET_MS) {
+      powers.forEach((p, i) => (quiet[i] += p));
+      quietCount++;
+      return;
+    }
+
+    if (!noise) {
+      tuneText("Playing the test sound. Keep quiet a few seconds more.");
+      noise = ctx.createBufferSource();
+      noise.buffer = pinkNoise(ctx, 2);
+      noise.loop = true;
+      const level = ctx.createGain();
+      level.gain.setValueAtTime(0, ctx.currentTime);
+      level.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 0.3);
+      noise.connect(level);
+      level.connect(ctx.destination);
+      noise.start();
+      tuning.level = level;
+    }
+
+    if (t > TUNE_QUIET_MS + TUNE_SETTLE_MS && t < TUNE_QUIET_MS + TUNE_NOISE_MS) {
+      powers.forEach((p, i) => (loud[i] += p));
+      loudCount++;
+      return;
+    }
+
+    if (t >= TUNE_QUIET_MS + TUNE_NOISE_MS) {
+      tuning.level.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
+      const result = finishTuning(
+        quiet.map((p) => 10 * Math.log10(p / quietCount + 1e-12)),
+        loud.map((p) => 10 * Math.log10(p / loudCount + 1e-12)),
+        device,
+      );
+      setTimeout(() => {
+        stopTuning(result);
+        if (wasPlaying) {
+          resumePlayback();
+        }
+      }, 200);
+    }
+  }, 50);
+}
+
+// turn the measurement into EQ gains. returns what to tell the listener
+function finishTuning(quietDb, loudDb, device) {
+  const snr = loudDb.map((db, i) => db - quietDb[i]);
+
+  // the middle of the range is where every speaker and mic is good, so
+  // judge whether it heard anything from there
+  const middle = [3, 4, 5, 6, 7];
+  const middleSnr = middle.map((i) => snr[i]).sort((a, b) => a - b)[2];
+  if (middleSnr < 10) {
+    return "Couldn't hear the test sound over the room. Turn the volume up and try again. On headphones, the microphone can't hear them, so pick a preset instead.";
+  }
+
+  // how far each band is from the middle's level
+  const reference = middle.map((i) => loudDb[i]).sort((a, b) => a - b)[2];
+  const measured = loudDb.map((db) => db - reference);
+
+  let gains = measured.map((deviation, i) => {
+    // too close to the room's noise to trust
+    if (snr[i] < 6) {
+      return 0;
+    }
+    // a deep hole at either end means the speaker can't play there at all.
+    // boosting would only add distortion, so trim it a little instead
+    if (deviation < -15 && (i < 2 || i > 8)) {
+      return -3;
+    }
+    return Math.min(6, Math.max(-10, -deviation * 0.8));
+  });
+
+  // even out band to band so it's a gentle curve, not a comb
+  gains = gains.map((gain, i) => {
+    const before = gains[Math.max(0, i - 1)];
+    const after = gains[Math.min(gains.length - 1, i + 1)];
+    return Math.round((before * 0.25 + gain * 0.5 + after * 0.25) * 2) / 2;
+  });
+
+  eq.tuned = {
+    gains,
+    measured: measured.map((db) => Math.round(db * 10) / 10),
+    device,
+    date: new Date().toISOString().slice(0, 10),
+  };
+  eq.on = true;
+  connectSpectrum();
+  setPreset("tuned");
+  clicks.confirm();
+
+  return `Tuned for ${device || "these speakers"}. The dashed line is what the microphone heard, the solid one is the correction.`;
+}
+
+$("eq-tune").addEventListener("click", () => {
+  if (tuning) {
+    stopTuning("Stopped. Nothing was changed.");
+  } else {
+    startTuning();
+  }
+});
+
+// ---------- equalizer: opening and closing ----------
+
+let eqReturnFocus = null;
+
+function openEq() {
+  eqReturnFocus = document.activeElement;
+  $("eq-sheet").hidden = false;
+  document.body.classList.add("eq-open");
+  sizeEqCurve();
+  renderEq();
+  $("eq-panel").focus();
+}
+
+function closeEq() {
+  stopTuning();
+  $("eq-sheet").hidden = true;
+  document.body.classList.remove("eq-open");
+  cancelAnimationFrame(eqCurveFrame);
+  eqReturnFocus?.focus?.();
+}
+
+$("eq-chip").addEventListener("click", openEq);
+$("eq-close").addEventListener("click", closeEq);
+$("eq-power").addEventListener("click", () => {
+  setEqOn(!eq.on);
+  clicks.confirm();
+});
+$("eq-reset").addEventListener("click", () => {
+  setPreset("flat");
+  clicks.confirm();
+});
+
+// a tap on the dimmed background closes it
+$("eq-sheet").addEventListener("click", (event) => {
+  if (event.target === $("eq-sheet")) {
+    closeEq();
+  }
+});
+
+$("eq-sheet").addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    event.stopPropagation();
+    closeEq();
+  }
+});
+
+// the music in the background keeps the curve's spectrum moving
+audio.addEventListener("play", wakeEqCurve);
+
+if (!volumeWorks) {
+  $("eq-ios-note").hidden = false;
+}
+
+buildFaders();
+buildPresetKeys();
+applyEq(true); // the saved gains, into the curve's model filters
+renderEq();
 
 // ---------- setup: skins and the tape deck ----------
 
